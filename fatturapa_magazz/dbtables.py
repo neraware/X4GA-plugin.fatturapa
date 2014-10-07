@@ -305,44 +305,49 @@ class FatturaElettronica(dbm.DocMag):
         
         fat = xmldoc.createRoot()
         
-        #header
+        # 1 <FatturaElettronicaHeader>
         head = xmldoc.appendElement(fat, 'FatturaElettronicaHeader')
         
-        #head dati trasmissione
+        # 1.1 <DatiTrasmissione>
         datitrasm = xmldoc.appendElement(head, 'DatiTrasmissione')
         
-        #head dati trasmittente
+        # 1.1.1 <IdTrasmittente>
         idtrasm = xmldoc.appendElement(datitrasm, 'IdTrasmittente')
         xmldoc.appendItems(idtrasm, (('IdPaese',  Env.Azienda.stato),
                                      ('IdCodice', Env.Azienda.codfisc),))
         
-        #head dati invio
+        # 1.1.2 <ProgressivoInvio>
         xmldoc.appendItems(datitrasm, (('ProgressivoInvio',    str(numprogr).zfill(5)),
                                        ('FormatoTrasmissione', xmldoc.sdicver),
                                        ('CodiceDestinatario',  self.pdc.ftel_codice),))
         
-#         #head contatti trasmittente
-#         dati = []
-#         if Env.Azienda.numtel:
-#             dati.append(('Telefono', Env.Azienda.numtel))
-#         if Env.Azienda.email:
-#             dati.append(('Email',    Env.Azienda.email))
-#         if dati:
-#             contattitrasm = xmldoc.appendElement(datitrasm, 'ContattiTrasmittente',)
-#             xmldoc.appendItems(contattitrasm, dati)
+        # 1.1.5 <ContattiTrasmittente>
+        dati = []
+        if Env.Azienda.numtel:
+            numtel = ''
+            for x in Env.Azienda.numtel.replace('+39',''):
+                if x.isalnum():
+                    numtel += x
+            if numtel:
+                dati.append(('Telefono', numtel))
+        if Env.Azienda.email:
+            dati.append(('Email', Env.Azienda.email))
+        if dati:
+            contattitrasm = xmldoc.appendElement(datitrasm, 'ContattiTrasmittente',)
+            xmldoc.appendItems(contattitrasm, dati)
         
-        #head cedente
-        
+        # 1.2 <CedentePrestatore>
         cedente = xmldoc.appendElement(head, 'CedentePrestatore')
         
-        #head dati fiscali cedente
+        # 1.2.1 <DatiAnagrafici>
         cedente_datianag = xmldoc.appendElement(cedente, 'DatiAnagrafici')
         
+        # 1.2.1.1 <IdFiscaleIVA>
         cedente_datianag_datifisc = xmldoc.appendElement(cedente_datianag, 'IdFiscaleIVA')
         xmldoc.appendItems(cedente_datianag_datifisc, (('IdPaese',  Env.Azienda.stato or "IT"),
                                                        ('IdCodice', Env.Azienda.codfisc or Env.Azienda.piva)))
         
-        #head dati anagrafici cedente
+        # 1.2.1.3 <Anagrafica>
         cedente_datianag_anagraf = xmldoc.appendElement(cedente_datianag, 'Anagrafica')
         dati = []
         if dataz['cognome']:
@@ -352,14 +357,14 @@ class FatturaElettronica(dbm.DocMag):
             dati.append(('Denominazione', Env.Azienda.descrizione))
         xmldoc.appendItems(cedente_datianag_anagraf, dati)
         
-        #head regime fiscale
+        # 1.2.1.8 <RegimeFiscale>
         try:
             regfisc = 'RF%s' % str(int(dataz['regfisc'])).zfill(2)
         except:
             regfisc = 'RF01'
         xmldoc.appendItems(cedente_datianag, (('RegimeFiscale', regfisc),))
         
-        #head sede
+        # 1.2.2 <Sede>
         cedente_sede = xmldoc.appendElement(cedente, 'Sede')
         xmldoc.appendItems(cedente_sede, (('Indirizzo', Env.Azienda.indirizzo),
                                           ('CAP',       Env.Azienda.cap),
@@ -368,22 +373,13 @@ class FatturaElettronica(dbm.DocMag):
                                           ('Nazione',   Env.Azienda.stato),))
         
         if dataz['soind'] and dataz['socap'] and dataz['socit'] and dataz['sopro']:
-            #head stabile organizzazione
+            # 1.2.3 <StabileOrganizzazione>
             cedente_staborg = xmldoc.appendElement(cedente, 'StabileOrganizzazione')
             xmldoc.appendItems(cedente_staborg, (('Indirizzo', dataz['soind']),
                                                  ('CAP',       dataz['socap']),
                                                  ('Comune',    dataz['socit']),
                                                  ('Provincia', dataz['sopro']),
                                                  ('Nazione',   'IT'),))
-        
-#         if dataz['reanum']:
-#             #head iscrizione rea
-#             cedente_datirea = xmldoc.appendElement(cedente, 'IscrizioneREA')
-#             xmldoc.appendItems(cedente_datirea, (('NumeroREA',         dataz['reanum']),
-#                                               ('Ufficio',           dataz['reauff']),
-#                                               ('CapitaleSociale',   '%.2f' % (dataz['capsoc'] or 0)),
-#                                               ('SocioUnico',        si_no(dataz['socuni'], "SU", "SM")),
-#                                               ('StatoLiquidazione', si_no(dataz['socliq'], "LS", "LN")),))
         
         if dataz['rfdes'] or dataz['rfcognome']:
             dati = []
@@ -392,30 +388,28 @@ class FatturaElettronica(dbm.DocMag):
                 dati.append(('Nome', dataz['rfnome']))
             else:
                 dati.append(('Denominazione', dataz['rfdes']))
-            #head rappresentante fiscale
+            # 1.3 <RappresentanteFiscale>
             cedente_rapfis = xmldoc.appendElement(cedente, 'RappresentanteFiscale')
-            #head dati anagrafici rappresentante fiscale
+            # 1.3.1 <DatiAnagrafici>
             cedente_rapfis_anag = xmldoc.appendElement(cedente_rapfis, 'DatiAnagrafici')
             xmldoc.appendItems(cedente_rapfis_anag, dati)
-            #head dati fiscali rappresentante fiscale
+            # 1.3.1.1 <IdFiscaleIVA>
             cedente_rapfis_anag = xmldoc.appendElement(cedente_rapfis, 'IdFiscaleIVA')
             xmldoc.appendItems(cedente_rapfis_anag, (('IdPaese',  dataz['rfstato']),
                                                      ('IdCodice', dataz['rfcodfis'] or dataz['rfpiva'])),)
         
-        #head cessionario
+        # 1.4 <CessionarioCommittente>
         cessionario = xmldoc.appendElement(head, 'CessionarioCommittente')
         
-        #head dati anagrafici cessionario
+        # 1.4.1 <DatiAnagrafici>
         cessionario_datianag = xmldoc.appendElement(cessionario, 'DatiAnagrafici')
         xmldoc.appendItems(cessionario_datianag, (('CodiceFiscale', cli.codfisc or cli.piva),))
         
-#         cessionario_datianag_fiscali = xmldoc.appendElement(cessionario_datianag, 'IdFiscaleIVA')
-#         xmldoc.appendItems(cessionario_datianag_fiscali, (('IdPaese',  cli.nazione),
-#                                                           ('IdCodice', cli.codfisc or cli.piva)),)
-        
+        # 1.4.1.3 <Anagrafica>
         cessionario_datianag_anagraf = xmldoc.appendElement(cessionario_datianag, 'Anagrafica')
         xmldoc.appendItems(cessionario_datianag_anagraf, (('Denominazione', pdc.descriz),))
         
+        #1.4.2 <Sede>
         cessionario_sede = xmldoc.appendElement(cessionario, 'Sede')
         xmldoc.appendItems(cessionario_sede, (('Indirizzo', cli.indirizzo),
                                               ('CAP',       cli.cap),
@@ -423,79 +417,24 @@ class FatturaElettronica(dbm.DocMag):
                                               ('Provincia', cli.prov),
                                               ('Nazione',   cli.nazione),))
         
-#         #soggetto emittente
-#         xmldoc.appendItems(head, (('SoggettoEmittente', 'CC'),))
-        
         loop = True
         while loop:
             
-            # dati di dettaglio body
+            # 2 <FatturaElettronicaBody>
             body = xmldoc.appendElement(fat, 'FatturaElettronicaBody')
             
-            #body dati generali
+            # 2.1 <DatiGenerali>
             body_gen = xmldoc.appendElement(body, 'DatiGenerali')
             
+            # 2.1.1 <DatiGeneraliDocumento>
             body_gen_doc = xmldoc.appendElement(body_gen, 'DatiGeneraliDocumento')
+            
             xmldoc.appendItems(body_gen_doc, (('TipoDocumento', self.config.ftel_tipdoc),
                                               ('Divisa',        'EUR'),
                                               ('Data',          data(self.datdoc)),
                                               ('Numero',        str(self.numdoc).zfill(5)),))
             
-            ddt = dbm.DocMag()
-            ddt.ClearOrders()
-            ddt.AddOrder('doc.datdoc')
-            ddt.AddOrder('doc.numdoc')
-            ddt.Retrieve("doc.id_docacq=%s" % self.id)
-            if ddt.RowsCount() > 0:
-                for _ in ddt:
-                    body_gen_ddt = xmldoc.appendElement(body_gen, 'DatiDDT')
-                    xmldoc.appendItems(body_gen_ddt, (('NumeroDDT', str(ddt.numdoc)),
-                                                      ('DataDDT',   data(ddt.datdoc)),))
-            
-#             if False:
-#                 body_gen_acq = xmldoc.appendElement(body_gen, 'DatiOrdineAcquisto')
-#                 xmldoc.appendItems(body_gen_acq, (('RiferimentoNumeroLinea', '1'),
-#                                                ('IdDocumento',            '123'),
-#                                                ('CodiceCUP',              '123abc'),
-#                                                ('CodiceCIG',              '456def'),))
-#                 
-#                 body_gen_ctr = xmldoc.appendElement(body_gen, 'DatiContratto')
-#                 xmldoc.appendItems(body_gen_ctr, (('RiferimentoNumeroLinea', '1'),
-#                                                ('IdDocumento',            '123'),
-#                                                ('Data',                   '2012-09-01'),
-#                                                ('NumItem',                '5'),
-#                                                ('CodiceCUP',              '123abc'),
-#                                                ('CodiceCIG',              '456def'),))
-#                 
-#                 body_gen_cvz = xmldoc.appendElement(body_gen, 'DatiConvenzione')
-#                 xmldoc.appendItems(body_gen_cvz, (('RiferimentoNumeroLinea', '1'),
-#                                                ('IdDocumento',            '123'),
-#                                                ('Data',                   '2012-09-01'),
-#                                                ('NumItem',                '5'),
-#                                                ('CodiceCUP',              '123abc'),
-#                                                ('CodiceCIG',              '456def'),))
-#                 
-#                 body_gen_ric = xmldoc.appendElement(body_gen, 'DatiRicezione')
-#                 xmldoc.appendItems(body_gen_ric, (('RiferimentoNumeroLinea', '1'),
-#                                                ('IdDocumento',            '123'),
-#                                                ('Data',                   '2012-09-01'),
-#                                                ('NumItem',                '5'),
-#                                                ('CodiceCUP',              '123abc'),
-#                                                ('CodiceCIG',              '456def'),))
-#                   
-#                 body_gen_tra = xmldoc.appendElement(body_gen, 'DatiTrasporto')
-#                 
-#                 body_gen_tra_vet = xmldoc.appendElement(body_gen_tra, 'DatiAnagraficiVettore')
-#                 
-#                 body_gen_tra_vet_fis = xmldoc.appendElement(body_gen_tra_vet, 'IdFiscaleIVA')
-#                 xmldoc.appendItems(body_gen_tra_vet_fis, (('IdPaese', 'IT'),
-#                                                        ('IdCodice', '24681012141')))
-#                 
-#                 body_gen_tra_vet_ana = xmldoc.appendElement(body_gen_tra_vet, 'Anagrafica')
-#                 xmldoc.appendItems(body_gen_tra_vet_ana, (('Denominazione', 'Trasporto spa'),))
-#                 
-#                 xmldoc.appendItems(body_gen_tra, (('DataOraConsegna', '2012-10-22T16:46:12.000+02:00'),))
-            
+            # 2.1.2 <DatiOrdineAcquisto>
             v = []
             if self.ftel_ordnum:
                 v.append(('IdDocumento', self.ftel_ordnum))
@@ -509,10 +448,22 @@ class FatturaElettronica(dbm.DocMag):
                 body_gen_acq = xmldoc.appendElement(body_gen, 'DatiOrdineAcquisto')
                 xmldoc.appendItems(body_gen_acq, v)
             
-            # body dati dettaglio beni/servizi
+            # 2.1.8 <DatiDDT>
+            ddt = dbm.DocMag()
+            ddt.ClearOrders()
+            ddt.AddOrder('doc.datdoc')
+            ddt.AddOrder('doc.numdoc')
+            ddt.Retrieve("doc.id_docacq=%s" % self.id)
+            if ddt.RowsCount() > 0:
+                for _ in ddt:
+                    body_gen_ddt = xmldoc.appendElement(body_gen, 'DatiDDT')
+                    xmldoc.appendItems(body_gen_ddt, (('NumeroDDT', str(ddt.numdoc)),
+                                                      ('DataDDT',   data(ddt.datdoc)),))
+            
+            # 2.2 <DatiBeniServizi>
             body_det = xmldoc.appendElement(body, 'DatiBeniServizi')
             
-            #body dettaglio linee
+            # 2.2.1 <DettaglioLinee>
             for mov in self.mov:
                 
                 if not mov.importo:
@@ -555,13 +506,17 @@ class FatturaElettronica(dbm.DocMag):
                 if dati:
                     xmldoc.appendItems(body_det_row, dati)
             
+            # 2.2.2 <DatiRiepilogo>
             body_det_rie = xmldoc.appendElement(body_det, 'DatiRiepilogo')
             for ivaid, ivacod, ivades, imponib, imposta, importo, imposcr, isomagg, perciva, percind, tipoalq in self._info.totiva:
                 xmldoc.appendItems(body_det_rie, (('AliquotaIVA',       '%.2f' % perciva),
                                                   ('ImponibileImporto', '%.2f' % imponib),
                                                   ('Imposta',           '%.2f' % imposta),))
             
+            # 2.4 <DatiPagamento>
             body_pag = xmldoc.appendElement(body, 'DatiPagamento')
+            
+            # 2.4.1 <CondizioniPagamento>
             xmldoc.appendItems(body_pag, (('CondizioniPagamento', self.modpag.ftel_tippag),))
             
             if self.id_reg is not None:
@@ -569,10 +524,17 @@ class FatturaElettronica(dbm.DocMag):
                 reg.Get(self.id_reg)
                 if reg.OneRow():
                     for scad in self.regcon.scad:
+                        # 2.4.2 <DettaglioPagamento>
+                        datipag = [('ModalitaPagamento',     self.modpag.ftel_modpag),
+                                   ('DataScadenzaPagamento', data(scad.datscad)),
+                                   ('ImportoPagamento',      '%.2f' % scad.importo),]
+                        if cli.id_bancapag:
+                            dbban = dbm.adb.DbTable('banche')
+                            if dbban.Get(cli.id_bancapag) and dbban.OneRow():
+                                if len(dbban.iban or '') > 0:
+                                    datipag.append(('IBAN', dbban.iban))
                         body_pag_det = xmldoc.appendElement(body_pag, 'DettaglioPagamento')
-                        xmldoc.appendItems(body_pag_det, (('ModalitaPagamento',     self.modpag.ftel_modpag),
-                                                          ('DataScadenzaPagamento', data(scad.datscad)),
-                                                          ('ImportoPagamento',      '%.2f' % scad.importo),))
+                        xmldoc.appendItems(body_pag_det, datipag)
             
             db = dbm.adb.db.__database__
             db.Execute("UPDATE movmag_h SET ftel_numtrasm=%%s WHERE id=%s" % self.id, numprogr)
