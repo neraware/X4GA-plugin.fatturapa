@@ -429,10 +429,12 @@ class FatturaElettronica(dbm.DocMag):
             # 2.1.1 <DatiGeneraliDocumento>
             body_gen_doc = xmldoc.appendElement(body_gen, 'DatiGeneraliDocumento')
             
-            xmldoc.appendItems(body_gen_doc, (('TipoDocumento', self.config.ftel_tipdoc),
-                                              ('Divisa',        'EUR'),
-                                              ('Data',          data(self.datdoc)),
-                                              ('Numero',        str(self.numdoc).zfill(5)),))
+            xmldoc.appendItems(body_gen_doc, 
+                               (('TipoDocumento',          self.config.ftel_tipdoc),
+                                ('Divisa',                 'EUR'),
+                                ('Data',                   data(self.datdoc)),
+                                ('Numero',                 str(self.numdoc).zfill(5)),
+                                ('ImportoTotaleDocumento', '%.2f' % self.totimporto),))
             
             # 2.1.2 <DatiOrdineAcquisto>
             v = []
