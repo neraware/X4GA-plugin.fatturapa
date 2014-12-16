@@ -415,7 +415,7 @@ class FatturaElettronica(dbm.DocMag):
                                               ('CAP',       cli.cap),
                                               ('Comune',    cli.citta),
                                               ('Provincia', cli.prov),
-                                              ('Nazione',   cli.nazione),))
+                                              ('Nazione',   cli.nazione or "IT"),))
         
         loop = True
         while loop:
