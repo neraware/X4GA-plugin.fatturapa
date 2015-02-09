@@ -84,6 +84,7 @@ class ModPagamentoPanel(aw.Panel):
     def ValidateData(self):
         return True
 
+
 class ModPagamentoDialog(aw.Dialog):
     
     def __init__(self, *args, **kwargs):
@@ -115,6 +116,54 @@ class ModPagamentoDialog(aw.Dialog):
         valtip = 'TP%s' % str(seltip+1).zfill(2)
         valmod = 'MP%s' % str(selmod+1).zfill(2)
         return valtip, valmod
+
+
+class AliqIvaPanel(aw.Panel):
+    
+    def __init__(self, *args, **kwargs):
+        aw.Panel.__init__(self, *args, **kwargs)
+        wdr.DatiModPagamentoFunc(self)
+        cn = self.FindWindowByName
+        def set_focus():
+            cn('modpagamento').SetFocus()
+        wx.CallAfter(set_focus)
+        self.Bind(wx.EVT_BUTTON, self.OnSaveData, cn('butsave'))
+    
+    def OnSaveData(self, event):
+        if self.ValidateData():
+            event.Skip()
+    
+    def ValidateData(self):
+        return True
+
+
+class AliqIvaDialog(aw.Dialog):
+    
+    def __init__(self, *args, **kwargs):
+        kwargs['title'] = 'Aliquote IVA'
+        aw.Dialog.__init__(self, *args, **kwargs)
+        self.panel = ModPagamentoPanel(self)
+        self.AddSizedPanel(self.panel)
+        cn = self.FindWindowByName
+        self.Bind(wx.EVT_BUTTON, self.OnSaveData, cn('butsave'))
+    
+    def OnSaveData(self, event):
+        self.EndModal(wx.ID_OK)
+    
+    def SetData(self, iva):
+        cn = self.FindWindowByName
+        natura = iva.ftel_natura
+        if natura:
+            value = int(natura[1:])-1
+        else:
+            value = 0
+        cn('naturaliqiva').SetSelection(value)
+    
+    def GetData(self):
+        cn = self.FindWindowByName
+        natura = cn('naturailqiva').GetSelection()
+        valnat = 'N%s' % str(natura+1).zfill(1)
+        return valnat
 
 
 class DatiClientePanel(aw.Panel):
@@ -201,6 +250,26 @@ class FatturaElettronicaModPagGrid(dbglib.ADB_Grid):
         self.CreateGrid()
 
 
+class FatturaElettronicaAliqIvaGrid(dbglib.ADB_Grid):
+    
+    def __init__(self, parent, dbiva):
+        
+        dbglib.ADB_Grid.__init__(self, parent, db_table=dbiva, 
+                                 can_edit=False, can_insert=False, on_menu_select='row')
+        
+        iva = self.dbiva = dbiva
+        
+        def ci(tab, col):
+            return tab._GetFieldIndex(col, inline=True)
+        
+        self.AddColumn(iva, 'codice',      'Cod.', col_width=40)
+        self.AddColumn(iva, 'descriz',     'Mod.Pagamento', col_width=200, is_fittable=True)
+        self.AddColumn(iva, 'ftel_natura', 'Nx', col_width=60)
+        self.AddColumn(iva, 'id',          '#iva', col_width=1)
+        
+        self.CreateGrid()
+
+
 class FatturaElettronicaClientiGrid(dbglib.ADB_Grid):
     
     def __init__(self, parent, dbpdc):
@@ -230,13 +299,17 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         self.dbpfe = dbcfg.ProgrMagazz_FatturaElettronica()
         self.dbcli = dbcfg.FatturaElettronica_Clienti()
         self.dbmpa = dbcfg.FatturaElettronica_ModPagamento()
+        self.dbiva = dbcfg.FatturaElettronica_AliqIva()
         self.dbtpd = dbcfg.FatturaElettronica_Causali()
         self.gridcli = FatturaElettronicaClientiGrid(cn('pangridcli'), self.dbcli)
         self.gridmpa = FatturaElettronicaModPagGrid(cn('pangridmpa'), self.dbmpa)
+        self.gridiva = FatturaElettronicaAliqIvaGrid(cn('pangridiva'), self.dbiva)
         self.gridtpd = FatturaElettronicaCausaliGrid(cn('pangridtpd'), self.dbtpd)
-        self.Bind(dbglib.gridlib.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridClientiData, self.gridcli)
-        self.Bind(dbglib.gridlib.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridModPagData, self.gridmpa)
-        self.Bind(dbglib.gridlib.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridTipDocData, self.gridtpd)
+        for grid, func in ((self.gridcli, self.OnGridClientiData),
+                           (self.gridmpa, self.OnGridModPagData),
+                           (self.gridiva, self.OnGridAliqIvaData),
+                           (self.gridtpd, self.OnGridTipDocData),):
+            self.Bind(dbglib.gridlib.EVT_GRID_CELL_LEFT_DCLICK, func, grid)
         self.LoadData()
         self.Bind(wx.EVT_BUTTON, self.OnSaveData, cn('butupd'))
     
@@ -266,6 +339,19 @@ class FatturaElettronicaSetupPanel(aw.Panel):
             self.Refresh()
         event.Skip()
     
+    def OnGridAliqIvaData(self, event):
+        iva = self.dbiva
+        iva.MoveRow(event.GetRow())
+        dlg = AliqIvaDialog(self)
+        dlg.SetData(iva)
+        do = (dlg.ShowModal() == wx.ID_OK)
+        dlg.Destroy()
+        if do:
+            iva.MoveRow(event.GetRow())
+            iva.ftel_natura = dlg.GetData()
+            self.Refresh()
+        event.Skip()
+    
     def OnGridTipDocData(self, event):
         tpd = self.dbtpd
         tpd.MoveRow(event.GetRow())
@@ -287,6 +373,7 @@ class FatturaElettronicaSetupPanel(aw.Panel):
             self.FindWindowByName('ftel_numprogr').SetValue(cfg.progrimp1 or 0)
             for table, grid in ((self.dbcli, self.gridcli),
                                 (self.dbmpa, self.gridmpa),
+                                (self.dbiva, self.gridiva),
                                 (self.dbtpd, self.gridtpd),):
                 table.Retrieve()
                 grid.ChangeData(table.GetRecordset())
@@ -307,6 +394,7 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         if written:
             self.dbcli.Save()
             self.dbmpa.Save()
+            self.dbiva.Save()
             self.dbtpd.Save()
         else:
             aw.awu.MsgDialog(self, repr(cfg.GetError()), style=wx.ICON_ERROR)
