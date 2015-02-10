@@ -1,6 +1,6 @@
 ﻿#!/bin/env/python
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
-# Author:       Fabio Cassini <fc@f4b10.org>
-# Copyright:    (C) 2014 Fabio Cassini <fc@f4b10.org>
+# Name:         fatturpa_magazz/__init__.py
+# Copyright:    (C) 2015 Fabio Cassini <fc@f4b10.org>
 # ------------------------------------------------------------------------------

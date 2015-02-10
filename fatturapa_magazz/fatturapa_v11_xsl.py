@@ -1,8 +1,8 @@
 ﻿#!/bin/env python
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
-# Name:         __main__.py
-# Copyright:    (C) 2014 Fabio Cassini <fc@f4b10.org>
+# Name:         fatturpa_magazz/fatturapa_v11_xsl.py
+# Copyright:    (C) 2015 Fabio Cassini <fc@f4b10.org>
 # ------------------------------------------------------------------------------
 
 xsl = """

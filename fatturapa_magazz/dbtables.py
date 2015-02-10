@@ -1,7 +1,7 @@
 ﻿#!/bin/env/python
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
-# Author:       Fabio Cassini <fc@f4b10.org>
+# Name:         fatturpa_magazz/dbtables.py
 # Copyright:    (C) 2014 Fabio Cassini <fc@f4b10.org>
 # ------------------------------------------------------------------------------
 
