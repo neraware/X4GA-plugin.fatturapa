@@ -142,55 +142,61 @@ def EmissioneFatturaElettronicaFunc( parent, call_fit = True, set_sizer = True )
     item29.SetName( "pangridocs" )
     item0.Add( item29, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item30 = wx.FlexGridSizer( 0, 2, 0, 0 )
+    item30 = wx.StaticText( parent, ID_TEXT, "-", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item30.SetForegroundColour( wx.RED )
+    item30.SetFont( wx.Font( 10, wx.SWISS, wx.NORMAL, wx.BOLD ) )
+    item30.SetName( "warning" )
+    item0.Add( item30, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+    item31 = wx.FlexGridSizer( 0, 2, 0, 0 )
     
-    item31 = wx.FlexGridSizer( 1, 0, 0, 0 )
+    item32 = wx.FlexGridSizer( 1, 0, 0, 0 )
     
-    item32 = wx.Panel( parent, ID_LEGEND_GIA_TRASMESSO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
-    item32.SetName( "LEGEND_GIA_TRASMESSO" )
-    item31.Add( item32, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item33 = wx.Panel( parent, ID_LEGEND_GIA_TRASMESSO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item33.SetName( "LEGEND_GIA_TRASMESSO" )
+    item32.Add( item33, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item33 = wx.StaticText( parent, ID_TEXT, "Già trasmesso", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item31.Add( item33, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+    item34 = wx.StaticText( parent, ID_TEXT, "Già trasmesso", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item32.Add( item34, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item34 = wx.Panel( parent, ID_LEGEND_DA_TRASMETTERE, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
-    item34.SetName( "LEGEND_DA_TRASMETTERE" )
-    item31.Add( item34, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item35 = wx.Panel( parent, ID_LEGEND_DA_TRASMETTERE, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item35.SetName( "LEGEND_DA_TRASMETTERE" )
+    item32.Add( item35, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item35 = wx.StaticText( parent, ID_TEXT, "Da trasmettere", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item31.Add( item35, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+    item36 = wx.StaticText( parent, ID_TEXT, "Da trasmettere", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item32.Add( item36, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item36 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CIG, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
-    item36.SetName( "LEGEND_MANCA_CODICE_CIG" )
-    item31.Add( item36, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item37 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CIG, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item37.SetName( "LEGEND_MANCA_CODICE_CIG" )
+    item32.Add( item37, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item37 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CIG o Num. o Data ordine acquisto", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item31.Add( item37, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+    item38 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CIG o Num. o Data ordine acquisto", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item32.Add( item38, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item38 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CUP, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
-    item38.SetName( "LEGEND_MANCA_CODICE_CUP" )
-    item31.Add( item38, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item39 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CUP, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item39.SetName( "LEGEND_MANCA_CODICE_CUP" )
+    item32.Add( item39, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item39 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CUP", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item31.Add( item39, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+    item40 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CUP", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item32.Add( item40, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item40 = wx.Panel( parent, ID_LEGEND_SELEZIONATO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
-    item40.SetName( "LEGEND_SELEZIONATO" )
-    item31.Add( item40, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item41 = wx.Panel( parent, ID_LEGEND_SELEZIONATO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item41.SetName( "LEGEND_SELEZIONATO" )
+    item32.Add( item41, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item41 = wx.StaticText( parent, ID_TEXT, "Selezionato per la trasmissione", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item31.Add( item41, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+    item42 = wx.StaticText( parent, ID_TEXT, "Selezionato per la trasmissione", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item32.Add( item42, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item30.Add( item31, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+    item31.Add( item32, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
-    item42 = wx.Button( parent, ID_BUTPRT, "Stampa", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item42.SetName( "butprt" )
-    item42.Enable(False)
-    item30.Add( item42, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item43 = wx.Button( parent, ID_BUTPRT, "Stampa", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item43.SetName( "butprt" )
+    item43.Enable(False)
+    item31.Add( item43, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item30.AddGrowableCol( 1 )
+    item31.AddGrowableCol( 1 )
 
-    item0.Add( item30, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL, 5 )
+    item0.Add( item31, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL, 5 )
 
     item0.AddGrowableCol( 0 )
 

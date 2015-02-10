@@ -1,8 +1,14 @@
 eclipse.preferences.version=1
 encoding//fatturapa_cfg/azisetup.py=utf-8
+encoding//fatturapa_cfg/cfg_fatturapa.py=utf-8
+encoding//fatturapa_cfg/cfg_fatturapa_wdr.py=UTF-8
+encoding//fatturapa_cfg/dbtables.py=utf-8
 encoding//fatturapa_magazz/__init__.py=utf-8
 encoding//fatturapa_magazz/dbtables.py=utf-8
 encoding//fatturapa_magazz/fatturapa.py=utf-8
+encoding//fatturapa_magazz/fatturapa_v10_xsl.py=utf-8
+encoding//fatturapa_magazz/fatturapa_v11_xsl.py=utf-8
+encoding/fatturapa_env.py=utf-8
 encoding/fatturapa_frame.py=utf-8
 encoding/fatturapa_plugin.py=utf-8
 encoding/fatturapa_ver.py=utf-8

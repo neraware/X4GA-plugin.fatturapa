@@ -255,9 +255,20 @@ class FatturaElettronicaPanel(aw.Panel):
             docs.Retrieve()
         finally:
             wx.EndBusyCursor()
+        err = None
+        for doc in docs:
+            if not doc.modpag.ftel_tippag or not doc.modpag.ftel_modpag:
+                err = "Mod.pagamento non configurata su %s n. %s del %s" % (doc.config.descriz,
+                                                                            doc.numdoc,
+                                                                            doc.dita(doc.datdoc))
+            if not err:
+                for mov in doc.mov:
+                    if mov.iva.id and mov.samefloat(mov.iva.perciva, 0) and not mov.iva.ftel_natura:
+                        err = "Aliquota IVA %s non configurata" % mov.iva.codice
         self.gridocs.ChangeData(docs.GetRecordset())
         for name in 'butprt butgen numprogr'.split():
-            cn(name).Enable(not docs.IsEmpty())
+            cn(name).Enable(not err and not docs.IsEmpty())
+        cn('warning').SetLabel(err or '')
     
     def OnUpdateTotali(self, event):
         self.UpdateTotali()

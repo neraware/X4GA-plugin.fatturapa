@@ -49,14 +49,18 @@ def FatturaElettronicaFunc( parent, call_fit = True, set_sizer = True ):
     item5.AddPage( item7, "Mod.Pagamento" )
 
     item8 = wx.Panel( item5, -1 )
-    DocumentiDaTrasmettereFunc(item8, False)
-    item5.AddPage( item8, "Causali da trasmettere" )
+    AliqIvaFunc(item8, False)
+    item5.AddPage( item8, "Aliquote IVA" )
+
+    item9 = wx.Panel( item5, -1 )
+    DocumentiDaTrasmettereFunc(item9, False)
+    item5.AddPage( item9, "Causali da trasmettere" )
 
     item0.Add( item4, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-    item9 = wx.Button( parent, ID_BUTUPD, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item9.SetName( "butupd" )
-    item0.Add( item9, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item10 = wx.Button( parent, ID_BUTUPD, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item10.SetName( "butupd" )
+    item0.Add( item10, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
 
@@ -247,7 +251,7 @@ def DatiModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     item0.Add( item1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
 
     item2 = RadioBox( parent, ID_MODPAG, "Tipologia:", wx.DefaultPosition, wx.DefaultSize, 
-        ["MP01 - Contanti","MP02 - Assegno","MP03 - Assegno circolare","MP04 - Contanti presso Tesoreria","MP05 - Bonifico","MP06 - Vaglia cambiario","MP07 - Bollettino bancario","MP08 - Carta di credito","MP09 - RID","MP10 - RID utenze","MP11 - RID veloce","MP12 - RIBA","MP13 - MAV","MP14 - Quietanza erario","MP15 - Giroconto su conti di contabilità speciale","MP16 - Domiciliazione bancaria","MP17 - Domiciliazione postale"] , 2, wx.RA_SPECIFY_COLS )
+        ["MP01 - Contanti","MP02 - Assegno","MP03 - Assegno circolare","MP04 - Contanti presso Tesoreria","MP05 - Bonifico","MP06 - Vaglia cambiario","MP07 - Bollettino bancario","MP08 - Carta di pagamento","MP09 - RID","MP10 - RID utenze","MP11 - RID veloce","MP12 - RIBA","MP13 - MAV","MP14 - Quietanza erario","MP15 - Giroconto su conti di contabilità speciale","MP16 - Domiciliazione bancaria","MP17 - Domiciliazione postale","MP18 - Bollettino di c/c postale","MP19 - SEPA Direct Debit","MP20 - SEPA Direct Debit CORE","MP21 - SEPA Direct Debit B2B"] , 2, wx.RA_SPECIFY_COLS )
     item2.SetName( "modpagamento" )
     item0.Add( item2, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
@@ -256,6 +260,46 @@ def DatiModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     item0.Add( item3, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
+
+    if set_sizer == True:
+        parent.SetSizer( item0 )
+        if call_fit == True:
+            item0.SetSizeHints( parent )
+    
+    return item0
+
+ID_PANGRIDIVA = 10013
+
+def AliqIvaFunc( parent, call_fit = True, set_sizer = True ):
+    item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
+    
+    item1 = wx.StaticText( parent, ID_TEXT, "Natura aliquote IVA:", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item1.SetForegroundColour( wx.BLUE )
+    item0.Add( item1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+
+    item2 = wx.Panel( parent, ID_PANGRIDIVA, wx.DefaultPosition, wx.DefaultSize, wx.SUNKEN_BORDER )
+    item2.SetName( "pangridiva" )
+    item0.Add( item2, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item0.AddGrowableCol( 0 )
+
+    item0.AddGrowableRow( 1 )
+
+    if set_sizer == True:
+        parent.SetSizer( item0 )
+        if call_fit == True:
+            item0.SetSizeHints( parent )
+    
+    return item0
+
+
+def DatiAliqIvaFunc( parent, call_fit = True, set_sizer = True ):
+    item0 = wx.BoxSizer( wx.VERTICAL )
+    
+    item1 = RadioBox( parent, ID_RADIOBOX, "Natura", wx.DefaultPosition, wx.DefaultSize, 
+        ["N1 - Escluso ex Art.15","N2 - Non soggetto","N3 - Non imponibile","N4 - Esente","N5 - Regime del margine","N6 - Inversione contabile (reverse chanrge)"] , 1, wx.RA_SPECIFY_COLS )
+    item1.SetName( "naturaliqiva" )
+    item0.Add( item1, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
     if set_sizer == True:
         parent.SetSizer( item0 )

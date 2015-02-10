@@ -15,6 +15,9 @@ def TabStru(cls):
     a(["ftel_tippag",   "CHAR",     4, None, "Fattura elettronica: Tipo pagamento", None ])
     a(["ftel_modpag",   "CHAR",     4, None, "Fattura elettronica: Modo pagamento", None ])
     
+    a = cls.aliqiva.append
+    a(["ftel_natura",   "CHAR",     2, None, "Fattura elettronica: Natura aliquota", None ])
+    
     a = cls.pdc.append
     a(["ftel_codice",   "VARCHAR", 10, None, "Fattura elettronica: codice destinatario pa", None])
     

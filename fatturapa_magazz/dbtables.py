@@ -41,6 +41,23 @@ def normalize(x, upper=False):
     return y
 
 
+def fmt_qt(x):
+    mask = '%%.%df' % Env.Azienda.BaseTab.MAGQTA_DECIMALS
+    return mask % x
+
+def fmt_pr(x):
+    mask = '%%.%df' % Env.Azienda.BaseTab.MAGPRE_DECIMALS
+    return mask % x
+
+def fmt_sc(x):
+    mask = '%%.%df' % 2
+    return mask % x
+
+def fmt_ii(x):
+    mask = '%%.%df' % Env.Azienda.BaseTab.VALINT_DECIMALS
+    return mask % x
+
+
 class ClientiMovimentati(dbm.adb.DbMem):
     
     def __init__(self):
@@ -55,161 +72,6 @@ class FatturaElettronica(dbm.DocMag):
         self.AddBaseFilter('config.ftel_tipdoc IS NOT NULL AND config.ftel_tipdoc<>""')
         self.AddBaseFilter('pdc.ftel_codice IS NOT NULL AND pdc.ftel_codice<>""')
         self.Reset()
-    
-#     def get_xml_test(self):
-#         
-#         cli = self.GetAnag()
-#         
-#         doc = FTEL_Document()
-#         
-#         # elemento principale: fattura ("p:FatturaElettronica")
-#         
-#         fat = doc.createRoot()
-#         # dati di testata
-#         head = doc.appendElement(fat, 'FatturaElettronicaHeader')
-#         
-#         datitrasm = doc.appendElement(head, 'DatiTrasmissione')
-#         
-#         idtrasm = doc.appendElement(datitrasm, 'IdTrasmittente')
-#         doc.appendItems(idtrasm, (('IdPaese',  Env.Azienda.stato),
-#                                   ('IdCodice', Env.Azienda.codfisc),))
-#         
-#         doc.appendItems(datitrasm, (('ProgressivoInvio',    '00001'),
-#                                     ('FormatoTrasmissione', 'SDI10'),
-#                                     ('CodiceDestinatario',  'AAAAAA'),))
-#         
-#         contattitrasm = doc.appendElement(datitrasm, 'ContattiTrasmittente',)
-#         doc.appendItems(contattitrasm, (('Telefono', Env.Azienda.numtel),
-#                                         ('Email',    Env.Azienda.email),))
-#         
-#         cedente = doc.appendElement(head, 'CedentePrestatore')
-#         
-#         cedente_datianag = doc.appendElement(cedente, 'DatiAnagrafici')
-#         
-#         cedente_datianag_datifisc = doc.appendElement(cedente_datianag, 'IdFiscaleIVA')
-#         doc.appendItems(cedente_datianag_datifisc, (('IdPaese',  Env.Azienda.stato),
-#                                                     ('IdCodice', Env.Azienda.codfisc)))
-#         
-#         cedente_datianag_anagraf = doc.appendElement(cedente_datianag, 'Anagrafica')
-#         doc.appendItems(cedente_datianag_anagraf, (('Denominazione', Env.Azienda.descrizione),))
-#         
-#         doc.appendItems(cedente_datianag, (('RegimeFiscale', 'RF01'),))
-#         
-#         cedente_sede = doc.appendElement(cedente, 'Sede')
-#         doc.appendItems(cedente_sede, (('Indirizzo', Env.Azienda.indirizzo),
-#                                        ('CAP',       Env.Azienda.cap),
-#                                        ('Comune',    Env.Azienda.citta),
-#                                        ('Provincia', Env.Azienda.prov),
-#                                        ('Nazione',   Env.Azienda.stato),))
-#         
-#         cedente_staborg = doc.appendElement(cedente, 'StabileOrganizzazione')
-#         doc.appendItems(cedente_staborg, (('Indirizzo', 'Piazza Garibaldi'),
-#                                           ('CAP',       '00100'),
-#                                           ('Comune',    'Roma'),
-#                                           ('Provincia', 'RM'),
-#                                           ('Nazione',   'IT'),))
-#         
-#         cessionario = doc.appendElement(head, 'CessionarioCommittente')
-#         
-#         cessionario_datianag = doc.appendElement(cessionario, 'DatiAnagrafici')
-#         doc.appendItems(cessionario_datianag, (('CodiceFiscale', '09876543210'),))
-#         
-#         cessionario_datianag_anagraf = doc.appendElement(cessionario_datianag, 'Anagrafica')
-#         doc.appendItems(cessionario_datianag_anagraf, (('Denominazione', 'Societa beta\' S.r.l.'),))
-#         
-#         cessionario_sede = doc.appendElement(cessionario, 'Sede')
-#         doc.appendItems(cessionario_sede, (('Indirizzo', 'Via Milano'),
-#                                             ('CAP',       '00100'),
-#                                             ('Comune',    'Roma'),
-#                                             ('Provincia', 'RM'),
-#                                             ('Nazione',   'IT'),))
-#         
-#         doc.appendItems(head, (('SoggettoEmittente', 'CC'),))
-#         
-#         # dati di dettaglio
-#         body = doc.appendElement(fat, 'FatturaElettronicaBody')
-#         
-#         body_gen = doc.appendElement(body, 'DatiGenerali')
-#         
-#         body_gen_doc = doc.appendElement(body_gen, 'DatiGeneraliDocumento')
-#         doc.appendItems(body_gen_doc, (('TipoDocumento', 'TD01'),
-#                                        ('Divisa',        'EUR'),
-#                                        ('Data',          '2012-11-27'),
-#                                        ('Numero',        '00001'),
-#                                        ('Art73',         'SI'),))
-#         
-#         body_gen_acq = doc.appendElement(body_gen, 'DatiOrdineAcquisto')
-#         doc.appendItems(body_gen_acq, (('RiferimentoNumeroLinea', '1'),
-#                                        ('IdDocumento',            '123'),
-#                                        ('CodiceCUP',              '123abc'),
-#                                        ('CodiceCIG',              '456def'),))
-#         
-#         body_gen_ctr = doc.appendElement(body_gen, 'DatiContratto')
-#         doc.appendItems(body_gen_ctr, (('RiferimentoNumeroLinea', '1'),
-#                                        ('IdDocumento',            '123'),
-#                                        ('Data',                   '2012-09-01'),
-#                                        ('NumItem',                '5'),
-#                                        ('CodiceCUP',              '123abc'),
-#                                        ('CodiceCIG',              '456def'),))
-#         
-#         body_gen_cvz = doc.appendElement(body_gen, 'DatiConvenzione')
-#         doc.appendItems(body_gen_cvz, (('RiferimentoNumeroLinea', '1'),
-#                                        ('IdDocumento',            '123'),
-#                                        ('Data',                   '2012-09-01'),
-#                                        ('NumItem',                '5'),
-#                                        ('CodiceCUP',              '123abc'),
-#                                        ('CodiceCIG',              '456def'),))
-#         
-#         body_gen_ric = doc.appendElement(body_gen, 'DatiRicezione')
-#         doc.appendItems(body_gen_ric, (('RiferimentoNumeroLinea', '1'),
-#                                        ('IdDocumento',            '123'),
-#                                        ('Data',                   '2012-09-01'),
-#                                        ('NumItem',                '5'),
-#                                        ('CodiceCUP',              '123abc'),
-#                                        ('CodiceCIG',              '456def'),))
-#         
-#         body_gen_tra = doc.appendElement(body_gen, 'DatiTrasporto')
-#         
-#         body_gen_tra_vet = doc.appendElement(body_gen_tra, 'DatiAnagraficiVettore')
-#         
-#         body_gen_tra_vet_fis = doc.appendElement(body_gen_tra_vet, 'IdFiscaleIVA')
-#         doc.appendItems(body_gen_tra_vet_fis, (('IdPaese', 'IT'),
-#                                                ('IdCodice', '24681012141')))
-#         
-#         body_gen_tra_vet_ana = doc.appendElement(body_gen_tra_vet, 'Anagrafica')
-#         doc.appendItems(body_gen_tra_vet_ana, (('Denominazione', 'Trasporto spa'),))
-#         
-#         doc.appendItems(body_gen_tra, (('DataOraConsegna', '2012-10-22T16:46:12.000+02:00'),))
-#         
-#         body_det = doc.appendElement(body, 'DatiBeniServizi')
-#         for dnum, ddes, dpre, dimp, diva in ((1, 'BADGES MAGNETICI - PVC laminato bianco',                           3.00000000,  3,    21),
-#                                              (2, 'QUOTA ENERGIA MATERIA PRIMA GAS',                                  0.29785848, 33.66, 21),
-#                                              (3, 'QUOTA ENERGIA COMMERCIALIZZAZIONE AL DETTAGLIO (PARTE VARIABILE)', 0.00480000,  0.54, 21),
-#                                              (4, 'QUOTA ENERGIA CORRISPETTIVI DI RETE',                              0.04165785,  4.71, 21),):
-#             body_det_row = doc.appendElement(body_det, 'DettaglioLinee')
-#             doc.appendItems(body_det_row, (('NumeroLinea',    str(dnum)),
-#                                            ('Descrizione',    ddes),
-#                                            ('PrezzoUnitario', '%.8f' % dpre),
-#                                            ('PrezzoTotale',   '%.2f' % dimp),
-#                                            ('AliquotaIVA',    '%.2f' % diva),))
-#         
-#         body_det_rie = doc.appendElement(body_det, 'DatiRiepilogo')
-#         for iper, iimp, iiva in ((21, 3, 0.63),):
-#             doc.appendItems(body_det_rie, (('AliquotaIVA',       '%.2f' % iper),
-#                                            ('ImponibileImporto', '%.2f' % iimp),
-#                                            ('Imposta',           '%.2f' % iiva),))
-#         
-#         body_pag = doc.appendElement(body, 'DatiPagamento')
-#         doc.appendItems(body_pag, (('CondizioniPagamento', 'TP01'),))
-#         
-#         for pcod, pdat, pimp in (('MP01', '2012-12-31', 2.63),
-#                                  ('MP01', '2013-01-31', 1),):
-#             body_pag_det = doc.appendElement(body_pag, 'DettaglioPagamento')
-#             doc.appendItems(body_pag_det, (('ModalitaPagamento',     pcod),
-#                                            ('DataScadenzaPagamento', pdat),
-#                                            ('ImportoPagamento',      '%.2f' % pimp),))
-#         
-#         return doc.toprettyxml(indent="  ", encoding="UTF-8")
     
     @classmethod
     def ftel_get_name(cls, numprogr):
@@ -431,10 +293,11 @@ class FatturaElettronica(dbm.DocMag):
             
             xmldoc.appendItems(body_gen_doc, 
                                (('TipoDocumento',          self.config.ftel_tipdoc),
+#                                 ('Causale',                self.config.descriz),  #indicato in v.1.1, ma da errore
                                 ('Divisa',                 'EUR'),
                                 ('Data',                   data(self.datdoc)),
                                 ('Numero',                 str(self.numdoc).zfill(5)),
-                                ('ImportoTotaleDocumento', '%.2f' % self.totimporto),))
+                                ('ImportoTotaleDocumento', fmt_ii(self.totimporto)),))
             
             # 2.1.2 <DatiOrdineAcquisto>
             v = []
@@ -484,36 +347,50 @@ class FatturaElettronica(dbm.DocMag):
                 dati.append(('NumeroLinea', str(mov.numriga)))
                 dati.append(('Descrizione', mov.descriz))
 #                 if mov.qta:
-#                     dati.append(('Quantita', '%.8f' % mov.qta))
+#                     dati.append(('Quantita', fmt_qt(mov.qta)))
 #                 if mov.um:
 #                     dati.append(('UnitaMisura', mov.um))
                 if mov.prezzo:
-                    dati.append(('PrezzoUnitario', '%.8f' % mov.prezzo))
+                    dati.append(('PrezzoUnitario', fmt_pr(mov.prezzo)))
                 else:
-                    dati.append(('PrezzoUnitario', '%.8f' % mov.importo))
+                    dati.append(('PrezzoUnitario', fmt_pr(mov.importo)))
                 xmldoc.appendItems(body_det_row, dati)
                 dati = []
                 if imp_sconto:
                     #body dettaglio sconto
                     sdati = []
                     sdati.append(('Tipo', 'SC'))
-                    sdati.append(('Percentuale', '%.2f' % (imp_sconto/imp_lordo_sc*100)))
-                    sdati.append(('Importo', '%.2f' % imp_sconto))
+                    sdati.append(('Percentuale', fmt_ii(imp_sconto/imp_lordo_sc*100)))
+                    sdati.append(('Importo', fmt_sc(imp_sconto)))
                     body_det_row_sconto = xmldoc.appendElement(body_det_row, 'ScontoMaggiorazione')
                     xmldoc.appendItems(body_det_row_sconto, sdati)
                 if imp_netto_sc:
-                    dati.append(('PrezzoTotale', '%.2f' % imp_netto_sc))
+                    dati.append(('PrezzoTotale', fmt_ii(imp_netto_sc)))
                 if mov.iva.id:
-                    dati.append(('AliquotaIVA', '%.2f' % mov.iva.perciva))
+                    dati.append(('AliquotaIVA', fmt_sc(mov.iva.perciva)))
                 if dati:
                     xmldoc.appendItems(body_det_row, dati)
             
             # 2.2.2 <DatiRiepilogo>
             body_det_rie = xmldoc.appendElement(body_det, 'DatiRiepilogo')
+            iva = dbm.adb.DbTable('aliqiva')
             for ivaid, ivacod, ivades, imponib, imposta, importo, imposcr, isomagg, perciva, percind, tipoalq in self._info.totiva:
-                xmldoc.appendItems(body_det_rie, (('AliquotaIVA',       '%.2f' % perciva),
-                                                  ('ImponibileImporto', '%.2f' % imponib),
-                                                  ('Imposta',           '%.2f' % imposta),))
+                dativa = []
+                dativa.append(('AliquotaIVA',       fmt_sc(perciva)))
+                dativa.append(('ImponibileImporto', fmt_ii(imponib)))
+                dativa.append(('Imposta',           fmt_ii(imposta)))
+                if iva.id != ivaid:
+                    iva.Get(ivaid)
+                if iva.samefloat(iva.perciva, 0):
+                    dativa.append(('Natura', iva.ftel_natura))
+                if iva.tipo == "S":
+                    #split payment
+                    esig = "S"
+                else:
+                    #esigilità immediata
+                    esig = "I"
+                dativa.append(('EsigibilitaIVA', esig))
+                xmldoc.appendItems(body_det_rie, dativa)
             
             # 2.4 <DatiPagamento>
             body_pag = xmldoc.appendElement(body, 'DatiPagamento')
@@ -529,7 +406,7 @@ class FatturaElettronica(dbm.DocMag):
                         # 2.4.2 <DettaglioPagamento>
                         datipag = [('ModalitaPagamento',     self.modpag.ftel_modpag),
                                    ('DataScadenzaPagamento', data(scad.datscad)),
-                                   ('ImportoPagamento',      '%.2f' % scad.importo),]
+                                   ('ImportoPagamento',      fmt_ii(scad.importo)),]
                         if cli.id_bancapag:
                             dbban = dbm.adb.DbTable('banche')
                             if dbban.Get(cli.id_bancapag) and dbban.OneRow():
@@ -559,7 +436,8 @@ class FatturaElettronica(dbm.DocMag):
         text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)    
         stream = text_re.sub('>\g<1></', stream)
         n = stream.index('>')+1
-        stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.0.xsl"?>' + stream[n:]
+#         stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.0.xsl"?>' + stream[n:]
+        stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.1.xsl"?>' + stream[n:]
         
         filename = self.ftel_get_filename(numprogr)
         h = open(filename, 'w')
@@ -580,14 +458,16 @@ class FatturaElettronica(dbm.DocMag):
     
     def ftel_make_style(self, numprogr):
         path = self.ftel_get_pathname(numprogr)
-        import fatturapa_magazz.fatturapa_v10_xsl as xsl
-        open(os.path.join(path, 'fatturapa_v1.0.xsl'), 'w').write(xsl.xsl)
+#         import fatturapa_magazz.fatturapa_v10_xsl as xsl
+#         open(os.path.join(path, 'fatturapa_v1.0.xsl'), 'w').write(xsl.xsl)
+        import fatturapa_magazz.fatturapa_v11_xsl as xsl
+        open(os.path.join(path, 'fatturapa_v1.1.xsl'), 'w').write(xsl.xsl)
 
 
 class FTEL_Document(Document):
     
-    version = '1.0'
-    sdicver = 'SDI10'
+    version = '1.1'
+    sdicver = 'SDI11'
     
     def createRoot(self):
         
