@@ -122,10 +122,10 @@ class AliqIvaPanel(aw.Panel):
     
     def __init__(self, *args, **kwargs):
         aw.Panel.__init__(self, *args, **kwargs)
-        wdr.DatiModPagamentoFunc(self)
+        wdr.DatiAliqIvaFunc(self)
         cn = self.FindWindowByName
         def set_focus():
-            cn('modpagamento').SetFocus()
+            cn('naturaliqiva').SetFocus()
         wx.CallAfter(set_focus)
         self.Bind(wx.EVT_BUTTON, self.OnSaveData, cn('butsave'))
     
@@ -142,7 +142,7 @@ class AliqIvaDialog(aw.Dialog):
     def __init__(self, *args, **kwargs):
         kwargs['title'] = 'Aliquote IVA'
         aw.Dialog.__init__(self, *args, **kwargs)
-        self.panel = ModPagamentoPanel(self)
+        self.panel = AliqIvaPanel(self)
         self.AddSizedPanel(self.panel)
         cn = self.FindWindowByName
         self.Bind(wx.EVT_BUTTON, self.OnSaveData, cn('butsave'))
@@ -154,15 +154,18 @@ class AliqIvaDialog(aw.Dialog):
         cn = self.FindWindowByName
         natura = iva.ftel_natura
         if natura:
-            value = int(natura[1:])-1
+            value = int(natura[1:])
         else:
             value = 0
         cn('naturaliqiva').SetSelection(value)
     
     def GetData(self):
         cn = self.FindWindowByName
-        natura = cn('naturailqiva').GetSelection()
-        valnat = 'N%s' % str(natura+1).zfill(1)
+        natura = cn('naturaliqiva').GetSelection()
+        if natura == 0:
+            valnat = ''
+        else:
+            valnat = 'N%s' % str(natura).zfill(1)
         return valnat
 
 
