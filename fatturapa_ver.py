@@ -7,7 +7,7 @@
 
 VERSION_MAJOR   = 1
 VERSION_MINOR   = 1
-VERSION_RELEASE = 2
+VERSION_RELEASE = 3
 VERSION_TAG     = ""
 
 min_compat_ver = '1.1.00'
@@ -26,6 +26,7 @@ VERSION_STRING = version
 if VERSION_TAG:
     version += ' '+VERSION_TAG
 
+from fatturapa_verchg import plugin_history  # @UnusedImport
 
 MODVERSION_NAME    = ""
 

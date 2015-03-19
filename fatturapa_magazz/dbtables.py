@@ -134,7 +134,8 @@ class FatturaElettronica(dbm.DocMag):
         dataz = {}
         for name in """cognome nome regfisc reanum reauff """\
                     """soind socap socit sopro capsoc socuni socliq """\
-                    """rfnome rfcognome rfdes rfind rfcap rfcit rfpro rfcodfis rfpiva """.split():
+                    """rfnome rfcognome rfdes rfind rfcap rfcit rfpro rfcodfis rfpiva """\
+                    """trcodfis trstato """.split():
             cfg.Retrieve('setup.chiave=%s', 'azienda_ftel_%s' % name)
             if cfg.importo:
                 dataz[name] = cfg.importo
@@ -175,8 +176,14 @@ class FatturaElettronica(dbm.DocMag):
         
         # 1.1.1 <IdTrasmittente>
         idtrasm = xmldoc.appendElement(datitrasm, 'IdTrasmittente')
-        xmldoc.appendItems(idtrasm, (('IdPaese',  Env.Azienda.stato),
-                                     ('IdCodice', Env.Azienda.codfisc),))
+        if dataz['trcodfis']:
+            trcodfis = dataz['trcodfis']
+            trstato = dataz['trstato'] or "IT"
+        else:
+            trcodfis = Env.Azienda.codfisc or Env.Azienda.piva
+            trstato = Env.Azienda.stato or "IT"
+        xmldoc.appendItems(idtrasm, (('IdPaese',  trstato),
+                                     ('IdCodice', trcodfis),))
         
         # 1.1.2 <ProgressivoInvio>
         xmldoc.appendItems(datitrasm, (('ProgressivoInvio',    str(numprogr).zfill(5)),
