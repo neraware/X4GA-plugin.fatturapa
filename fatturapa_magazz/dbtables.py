@@ -135,12 +135,21 @@ class FatturaElettronica(dbm.DocMag):
         for name in """cognome nome regfisc reanum reauff """\
                     """soind socap socit sopro capsoc socuni socliq """\
                     """rfnome rfcognome rfdes rfind rfcap rfcit rfpro rfcodfis rfpiva """\
-                    """trcodfis trstato """.split():
+                    """trcodfis trstato """\
+                    """senome secognome sedes secodfis sepiva sestato setit seeori sesogemi""".split():
             cfg.Retrieve('setup.chiave=%s', 'azienda_ftel_%s' % name)
-            if cfg.importo:
-                dataz[name] = cfg.importo
+            if name == 'sesogemi':
+                if cfg.flag == "C":
+                    dataz[name] = "CC"
+                elif cfg.flag == "T":
+                    dataz[name] = "TZ"
+                else:
+                    dataz[name] = ""
             else:
-                dataz[name] = cfg.descriz
+                if cfg.importo:
+                    dataz[name] = cfg.importo
+                else:
+                    dataz[name] = cfg.descriz
         return dataz
     
     def ftel_make_files(self, numprogr):
@@ -285,6 +294,35 @@ class FatturaElettronica(dbm.DocMag):
                                               ('Comune',    cli.citta),
                                               ('Provincia', cli.prov),
                                               ('Nazione',   cli.nazione or "IT"),))
+        
+        if dataz['secodfis']:
+            #1.5 <TerzoIntermediarioOSoggettoEmittente>
+            tsogemi = xmldoc.appendElement(head, 'TerzoIntermediarioOSoggettoEmittente')
+            #1.5.1 <DatiAnagrafici>
+            tsogemi_datianag = xmldoc.appendElement(tsogemi, 'DatiAnagrafici')
+            tsogemi_datianag_id_iva = xmldoc.appendElement(tsogemi_datianag, 'IdFiscaleIVA')
+            xmldoc.appendItems(tsogemi_datianag_id_iva, (('IdPaese', dataz['sestato'] or "IT"),
+                                                         ('IdCodice', dataz['sepiva'])))
+            #1.5.2 <CodiceFiscale>
+            xmldoc.appendItems(tsogemi_datianag, (('CodiceFiscale', dataz['secodfis']),))
+            #1.5.3 <Anagrafica>
+            tsogemi_datianag_anag = xmldoc.appendElement(tsogemi_datianag, 'Anagrafica')
+            f = []
+            if dataz['sedes']:
+                f.append(('Denominazione', dataz['sedes']))
+            if dataz['senome']:
+                f.append(('Nome', dataz['senome']))
+            if dataz['secognome']:
+                f.append(('Cognome', dataz['secognome']))
+            if dataz['setit']:
+                f.append(('Titolo', dataz['setit']))
+            if dataz['seeori']:
+                f.append(('CodEORI', dataz['seeori']))
+            xmldoc.appendItems(tsogemi_datianag_anag, f)
+        
+        if dataz['sesogemi']:
+            #1.6 <SoggettoEmittente>
+            xmldoc.appendItems(head, (('SoggettoEmittente', dataz['sesogemi']),))
         
         loop = True
         while loop:

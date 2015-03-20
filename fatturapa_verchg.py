@@ -13,6 +13,12 @@ import mx.DateTime as dt
 
 plugin_history = (
            
+    ('1.1.04', None, (
+         ("BET4002",
+         """Possibilità di specificare i dati del soggetto emittente
+         o terzo intermediario."""),
+        ),),
+           
     ('1.1.03', None, (
          ("BET4001",
          """Possibilità di specificare soggetto trasmittente diverso
