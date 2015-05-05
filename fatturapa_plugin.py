@@ -15,4 +15,7 @@ from fatturapa_ver import *  # @UnusedWildImport
 from fatturapa_env import TabStru # @UnusedImport
 
 import fatturapa_frame  # @UnusedImport
+import fatturapa_cfg.ftdif  # @UnusedImport
 import fatturapa_cfg.azisetup  # @UnusedImport
+import fatturapa_magazz.ftdif  # @UnusedImport
+import fatturapa_magazz.dbftd  # @UnusedImport

@@ -55,6 +55,10 @@ class TipoDocumentoDialog(aw.Dialog):
             value = 0
         cn('tipodocumento').SetSelection(value)
         cn('toolprint').SetValue(tpd.ftel_layout)
+        if tpd.ftel_flgddt==None:
+            cn('isddt').SetValue(False)
+        else:
+            cn('isddt').SetValue(tpd.ftel_flgddt)
     
     def GetData(self):
         cn = self.FindWindowByName
@@ -63,7 +67,7 @@ class TipoDocumentoDialog(aw.Dialog):
             value = None
         else:
             value = 'TD%s' % str(sel).zfill(2)
-        return value, cn('toolprint').GetValue()
+        return value, cn('toolprint').GetValue(), cn('isddt').GetValue()
 
 
 class ModPagamentoPanel(aw.Panel):
@@ -227,6 +231,7 @@ class FatturaElettronicaCausaliGrid(dbglib.ADB_Grid):
         self.AddColumn(tpd, 'descriz',     'Documento', col_width=200, is_fittable=True)
         self.AddColumn(tpd, 'ftel_tipdoc', 'TDxx', col_width=60)
         self.AddColumn(tpd, 'ftel_layout', 'Layout', col_width=90)
+        self.AddColumn(tpd, 'ftel_flgddt', 'ddt', col_width=30, col_type=self.TypeCheck())
         self.AddColumn(tpd, 'id',          '#tpd', col_width=1)
         
         self.CreateGrid()
@@ -266,7 +271,7 @@ class FatturaElettronicaAliqIvaGrid(dbglib.ADB_Grid):
             return tab._GetFieldIndex(col, inline=True)
         
         self.AddColumn(iva, 'codice',      'Cod.', col_width=40)
-        self.AddColumn(iva, 'descriz',     'Mod.Pagamento', col_width=200, is_fittable=True)
+        self.AddColumn(iva, 'descriz',     'Aliquota Iva', col_width=200, is_fittable=True)
         self.AddColumn(iva, 'ftel_natura', 'Nx', col_width=60)
         self.AddColumn(iva, 'id',          '#iva', col_width=1)
         
@@ -299,6 +304,12 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         aw.Panel.__init__(self, *args, **kwargs)
         wdr.FatturaElettronicaFunc(self)
         cn = self.FindWindowByName
+        
+        import magazz.dbtables as dbm
+        self.dbcfg = dbm.adb.DbTable('cfgsetup', 'setup')        
+        
+        
+        
         self.dbpfe = dbcfg.ProgrMagazz_FatturaElettronica()
         self.dbcli = dbcfg.FatturaElettronica_Clienti()
         self.dbmpa = dbcfg.FatturaElettronica_ModPagamento()
@@ -364,13 +375,18 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         dlg.Destroy()
         if do:
             tpd.MoveRow(event.GetRow())
-            tpd.ftel_tipdoc, tpd.ftel_layout = dlg.GetData()
+            tpd.ftel_tipdoc, tpd.ftel_layout, tpd.ftel_flgddt = dlg.GetData()
             self.Refresh()
         event.Skip()
     
     def LoadData(self):
         wx.BeginBusyCursor()
         try:
+            self.dbcfg.Retrieve('setup.chiave=%s', 'azienda_ftel_flagdescriz')
+            if self.dbcfg.OneRow():
+                self.FindWindowByName('flagdescriz').SetValue(int(self.dbcfg.flag)==1)
+                
+            
             cfg = self.dbpfe
             cfg.Retrieve()
             self.FindWindowByName('ftel_numprogr').SetValue(cfg.progrimp1 or 0)
@@ -387,6 +403,14 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         return True
     
     def SaveData(self):
+        self.dbcfg.Retrieve('setup.chiave=%s', 'azienda_ftel_flagdescriz')
+        if self.dbcfg.RowsCount()==0:
+            self.dbcfg.CreateNewRow()
+            self.dbcfg.chiave='azienda_ftel_flagdescriz'
+        self.dbcfg.flag=self.FindWindowByName('flagdescriz').IsChecked()
+        self.dbcfg.Save()
+        
+        
         cfg = self.dbpfe
         key = 'ftel_numprogr'
         cfg.Retrieve('progr.codice=%s', key)

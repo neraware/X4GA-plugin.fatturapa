@@ -12,6 +12,7 @@ import X_wdr as wdr
 ID_FATTURAPA_SETUP =  wx.NewId()
 ID_FATTURAPA_GENERA = wx.NewId()
 ID_FATTURAPA_FOLDER = wx.NewId()
+ID_FATTURAPA_ELENCO = wx.NewId()
 
 
 class _EvaCli_XFrame(XFrame):
@@ -41,14 +42,22 @@ class _EvaCli_XFrame(XFrame):
         
         menu = wx.Menu()
         for mid, func, voce, desc in (
-                    
+            
+            (ID_FATTURAPA_ELENCO, self._FatturaPA_OnElenco, 
+             "Documenti trasmessi/da trasmettere",
+             "Visualizza l'elenco dei documenti fattura elettronica"),
+            
+            (None, None, None, None),
+            
             (ID_FATTURAPA_GENERA, self._FatturaPA_OnGenera, 
              "Genera file per la trasmissione\tShift-Ctrl-F",
              "Genera file da trasmettere a SDI"),
             
             (ID_FATTURAPA_FOLDER, self._FatturaPA_OnFolder, 
              "Apri cartella files generati",
-             "Apre la cartella dei files generati"),):
+             "Apre la cartella dei files generati"),
+            
+            ):
             
             if mid is None:
                 menu.AppendSeparator()
@@ -77,7 +86,11 @@ class _EvaCli_XFrame(XFrame):
         
         from fatturapa_magazz.fatturapa import apri_cartella_files
         apri_cartella_files()
-
+    
+    def _FatturaPA_OnElenco(self, event):
+        
+        from fatturapa_magazz.fatturapa import ElencoFattureElettronicheFrame
+        self.LaunchFrame(ElencoFattureElettronicheFrame)
 
 import xframe
 xframe.XFrame = _EvaCli_XFrame

@@ -21,6 +21,8 @@ import fatturapa_magazz.dbtables as dbfe
 import fatturapa_cfg.dbtables as dbcfg
 
 import Env
+import report as rpt
+
 
 _evtDOC_CHECKED = wx.NewEventType()
 EVT_DOC_CHECKED = wx.PyEventBinder(_evtDOC_CHECKED)
@@ -61,6 +63,8 @@ class ClientiMovimentatiGrid(dbglib.ADB_Grid):
 
 class FatturaElettronicaGrid(dbglib.ADB_Grid):
     
+    _canedit = True
+    
     def __init__(self, parent, dbdoc):
         
         dbglib.ADB_Grid.__init__(self, parent, db_table=dbdoc,
@@ -73,36 +77,47 @@ class FatturaElettronicaGrid(dbglib.ADB_Grid):
         def ci(tab, col):
             return tab._GetFieldIndex(col, inline=True)
         
-        self.AddColumn(doc, 'fe_sel', 'Sel.', col_width=40, col_type=self.TypeCheck())
-        self.AddColumn(tpd, 'codice', 'Cod.', col_width=40)
-        self.AddColumn(tpd, 'descriz', 'Documento', col_width=150)
-        self.AddColumn(doc, 'numdoc', 'Num.', col_type=self.TypeInteger(5))
-        self.AddColumn(doc, 'datdoc', 'Data', col_type=self.TypeDate())
-        self.AddColumn(pdc, 'codice', 'Cod.', col_width=60)
-        self.AddColumn(pdc, 'descriz', 'Cliente', col_width=200, is_fittable=True)
-        self.AddColumn(doc, 'ftel_ordnum', 'Ord.Acq.', col_width=80, is_editable=True)
-        self.AddColumn(doc, 'ftel_orddat', 'Del', col_type=self.TypeDate(), is_editable=True)
-        self.AddColumn(doc, 'ftel_codcig', 'CIG', col_width=80, is_editable=True)
-        self.AddColumn(doc, 'ftel_codcup', 'CUP', col_width=80, is_editable=True)
-        self.AddColumn(doc, 'ftel_numtrasm', 'N.Tras.', col_type=self.TypeInteger(5))
-        self.AddColumn(doc, 'id', '#doc', col_width=1)
-        self.AddColumn(pdc, 'id', '#pdc', col_width=1)
+        if self._canedit:
+            self.AddColumn(doc, 'fe_sel', 'Sel.', col_width=40, col_type=self.TypeCheck())
+        
+        self.COL_TPDCOD = self.AddColumn(tpd, 'codice', 'Cod.', col_width=40)
+        self.COL_TPDDES = self.AddColumn(tpd, 'descriz', 'Documento', col_width=150)
+        self.COL_NUMDOC = self.AddColumn(doc, 'numdoc', 'Num.', col_type=self.TypeInteger(5))
+        self.COL_DATDOC = self.AddColumn(doc, 'datdoc', 'Data', col_type=self.TypeDate())
+        self.COL_PDCCOD = self.AddColumn(pdc, 'codice', 'Cod.', col_width=60)
+        self.COL_PDCDES = self.AddColumn(pdc, 'descriz', 'Cliente', col_width=200, is_fittable=True)
+        self.COL_BOLLOV = self.AddColumn(doc, 'ftel_bollovirt', 'Bollo V.', col_type=self.TypeFloat(5, 2), is_editable=self._canedit)
+        self.COL_RIFAMM = self.AddColumn(doc, 'ftel_rifamm', 'Rif.Amm.', col_width=120, is_editable=self._canedit)
+        self.COL_NUMORD = self.AddColumn(doc, 'ftel_ordnum', 'Ord.Acq.', col_width=80, is_editable=self._canedit)
+        self.COL_DATORD = self.AddColumn(doc, 'ftel_orddat', 'Del', col_type=self.TypeDate(), is_editable=self._canedit)
+        self.COL_CODCIG = self.AddColumn(doc, 'ftel_codcig', 'CIG', col_width=80, is_editable=self._canedit)
+        self.COL_CODCUP = self.AddColumn(doc, 'ftel_codcup', 'CUP', col_width=80, is_editable=self._canedit)
+        self.COL_NUMTRA = self.AddColumn(doc, 'ftel_numtrasm', 'N.Tras.', col_type=self.TypeInteger(5))
+        self.COL_ID_DOC = self.AddColumn(doc, 'id', '#doc', col_width=1)
+        self.COL_ID_PDC = self.AddColumn(pdc, 'id', '#pdc', col_width=1)
         
         self._col_sel = ci(doc, 'fe_sel')
+        self._col_rfa = ci(doc, 'ftel_rifamm')
         self._col_num = ci(doc, 'ftel_numtrasm')
         self._col_oan = ci(doc, 'ftel_ordnum')
         self._col_oad = ci(doc, 'ftel_orddat')
         self._col_cig = ci(doc, 'ftel_codcig')
         self._col_cup = ci(doc, 'ftel_codcup')
+        self._col_bol = ci(doc, 'ftel_bollovirt')
+        self._col_tiv = ci(doc, 'totimposta')
         
         self.CreateGrid()
-#         
-#         self.AppendContextMenuVoice('Scheda categoria', self.OnSchedaCatArt)
-#         self.AppendContextMenuVoice('Elimina sconto', self.OnDeleteRow)
+        
+        if not self._canedit:
+            self.AddTotalsRow(self.COL_PDCDES, 'Totali', (ci(doc, 'ftel_bollovirt'),))
     
     def CellEditAfterUpdate(self, row, gridcol, col, value):
         doc = self.dbdoc
         doc.MoveRow(row)
+        
+        if col == self._col_rfa:
+            cmd = "UPDATE movmag_h SET ftel_rifamm=%%s WHERE id=%s" % doc.id
+            doc._info.db.Execute(cmd, doc.ftel_rifamm[:20])
         if col == self._col_oan:
             cmd = "UPDATE movmag_h SET ftel_ordnum=%%s WHERE id=%s" % doc.id
             doc._info.db.Execute(cmd, doc.ftel_ordnum)
@@ -115,6 +130,9 @@ class FatturaElettronicaGrid(dbglib.ADB_Grid):
         elif col == self._col_cup:
             cmd = "UPDATE movmag_h SET ftel_codcup=%%s WHERE id=%s" % doc.id
             doc._info.db.Execute(cmd, doc.ftel_codcup)
+        elif col == self._col_bol:
+            cmd = "UPDATE movmag_h SET ftel_bollovirt=%%s WHERE id=%s" % doc.id
+            doc._info.db.Execute(cmd, doc.ftel_bollovirt)
     
     def GetAttr(self, row, col, rscol, attr):
         attr = dbglib.ADB_Grid.GetAttr(self, row, col, rscol, attr)
@@ -133,6 +151,8 @@ class FatturaElettronicaGrid(dbglib.ADB_Grid):
                 bg = 'red'
             elif rscol == self._col_cup and (r[self._col_cup] or '') == '':
                 bg = 'yellow'
+            elif rscol == self._col_bol and (r[self._col_tiv] or 0) == 0:
+                bg = 'green'
             attr.SetBackgroundColour(bg)
         return attr
     
@@ -144,10 +164,14 @@ class FatturaElettronicaGrid(dbglib.ADB_Grid):
 
 class FatturaElettronicaPanel(aw.Panel):
     
+    GridClass = FatturaElettronicaGrid
+    window_filler = wdr.EmissioneFatturaElettronicaFunc
+    report_name = "Documenti fattura elettronica"
+    
     def __init__(self, parent):
         
         aw.Panel.__init__(self, parent)
-        wdr.EmissioneFatturaElettronicaFunc(self)
+        self.window_filler(self)
         cn = self.FindWindowByName
         
         self.dbcli = dbfe.ClientiMovimentati()
@@ -155,7 +179,7 @@ class FatturaElettronicaPanel(aw.Panel):
         self.dbdocs = dbfe.FatturaElettronica()
         self.dbdocs.AddField('0.0', 'fe_sel')
         self.dbdocs.Reset()
-        self.gridocs = FatturaElettronicaGrid(cn('pangridocs'), self.dbdocs)
+        self.gridocs = self.GridClass(cn('pangridocs'), self.dbdocs)
         
         self.dbpfe = dbcfg.ProgrMagazz_FatturaElettronica()
         self.UpdateNumProgr()
@@ -163,7 +187,9 @@ class FatturaElettronicaPanel(aw.Panel):
         today = Env.Azienda.Login.dataElab
         cn('data1').SetValue(Env.DateTime.Date(today.year, today.month, 1))
         cn('data2').SetValue(today)
-        cn('id_pdc').SetFilter('0')
+        c = cn('id_pdc')
+        if c:
+            c.SetFilter('0')
         
         for name in ('LEGEND_SELEZIONATO',
                      'LEGEND_GIA_TRASMESSO',
@@ -182,7 +208,9 @@ class FatturaElettronicaPanel(aw.Panel):
         for name, func in (('butsrc', self.OnUpdateClienti),
                            ('butprt', self.OnPrintData),
                            ('butgen', self.OnGeneraFile),):
-            self.Bind(wx.EVT_BUTTON, func, cn(name))
+            c = cn(name)
+            if c:
+                self.Bind(wx.EVT_BUTTON, func, c)
         self.Bind(EVT_DOC_CHECKED, self.OnUpdateTotali, self.gridocs)
     
     def OnUpdateData(self, event):
@@ -195,8 +223,21 @@ class FatturaElettronicaPanel(aw.Panel):
         self.PrintData()
     
     def OnGeneraFile(self, event):
-        if self.GeneraFile():
-            self.UpdateData()
+        if self.Validate():
+            if self.GeneraFile():
+                self.UpdateData()
+    
+    def Validate(self):
+        err = False
+        for doc in self.dbdocs:
+            if doc.fe_sel and not doc.totimposta and not doc.ftel_bollovirt:
+                err = True
+        if err:
+            msg = "Sono stati selezionati documenti privi di imposta e di bollo virtuale.\nProseguire ?"
+            stl = wx.ICON_QUESTION|wx.YES_NO|wx.NO_DEFAULT
+            if aw.awu.MsgDialog(self, msg, style=stl) != wx.ID_YES:
+                return False
+        return True
     
     def UpdateNumProgr(self):
         cn = self.FindWindowByName
@@ -296,7 +337,7 @@ class FatturaElettronicaPanel(aw.Panel):
         cn('docsel_tot').SetValue(totdoc)
     
     def PrintData(self):
-        pass
+        rpt.Report(self, self.dbdocs, self.report_name)
     
     def GeneraFile(self):
         
@@ -319,13 +360,19 @@ class FatturaElettronicaPanel(aw.Panel):
             wx.BeginBusyCursor()
             try:
                 path, _name = docs.ftel_make_files(numprogr)
-                open_dir(path)
             finally:
                 wx.EndBusyCursor()
             
-            aw.awu.MsgDialog(self, """File generato correttamente.\n"""\
-                                   """Provvedere alla firma ed invio.""", style=wx.ICON_INFORMATION)
-            self.UpdateData()
+            if len(docs.lError)>0:
+                msg=''
+                for r in docs.lError:
+                    msg='%s\n%s' % (msg, r)
+                aw.awu.MsgDialog(self, 'RILEVATI I SEGUENTI ERRORI:\n%s\nCORREGGERE PRIMA DI INVIARE' %msg, style=wx.ICON_ERROR)
+            else:
+                open_dir(path)
+                aw.awu.MsgDialog(self, """File generato correttamente.\n"""\
+                                       """Provvedere alla firma ed invio.""", style=wx.ICON_INFORMATION)
+                self.UpdateData()
             
             return True
         
@@ -334,13 +381,102 @@ class FatturaElettronicaPanel(aw.Panel):
 
 class FatturaElettronicaFrame(aw.Frame):
     
+    Panel = FatturaElettronicaPanel
+    
     def __init__(self, *args, **kwargs):
         if not 'title' in kwargs:
             kwargs['title'] = FRAME_TITLE
         aw.Frame.__init__(self, *args, **kwargs)
-        self.panel = FatturaElettronicaPanel(self)
+        self.panel = self.Panel(self)
         self.AddSizedPanel(self.panel)
 
 
 def apri_cartella_files():
     open_dir(dbfe.FatturaElettronica.ftel_get_basepath())
+
+
+
+
+
+
+
+class ElencoFattureElettronicheGrid(FatturaElettronicaGrid):
+    _canedit = False
+
+
+class ElencoFattureElettronichePanel(FatturaElettronicaPanel):
+    
+    GridClass = ElencoFattureElettronicheGrid
+    window_filler = wdr.ElencoDocumentiFunc
+    
+    def OnUpdateData(self, event):
+        cn = self.FindWindowByName
+        x = event.GetEventObject()
+        if x.GetName() == 'solotrasm' and x.IsChecked():
+            cn('datrasm').SetValue(False)
+        elif x.GetName() == 'datrasm' and x.IsChecked():
+            cn('solotrasm').SetValue(False)
+        self.UpdateData()
+        event.Skip()
+    
+    def OnUpdateClienti(self, event):
+        self.UpdateData()
+        event.Skip()
+    
+    def _get_values(self):
+        cn = self.FindWindowByName
+        data1, data2 = map(lambda x: cn(x).GetValue(), 'data1 data2'.split())
+        id_pdc = None
+        if data1 is None:
+            err = 'Manca la data di partenza'
+        elif data2 is None:
+            err = 'Manca la data di fine'
+        else:
+            err = None
+        if err:
+            aw.awu.MsgDialog(self, "Dati errati:\n%s" % err, style=wx.ICON_ERROR)
+            return None
+        return data1, data2, id_pdc
+    
+    def UpdateData(self):
+        cn = self.FindWindowByName
+        _ = self._get_values()
+        if _ is None:
+            return False
+        data1, data2, _ = _
+        docs = self.dbdocs
+        docs.ClearFilters()
+        docs.AddFilter('doc.datdoc>=%s AND doc.datdoc<=%s', data1, data2)
+        trasm, datra, bollv = map(lambda x: cn(x).IsChecked(), 'solotrasm datrasm bollovirt'.split())
+        if trasm:
+            docs.AddFilter('doc.ftel_numtrasm IS NOT NULL')
+        elif datra:
+            docs.AddFilter('doc.ftel_numtrasm IS NULL')
+        if bollv:
+            docs.AddFilter('(doc.ftel_bollovirt IS NOT NULL AND doc.ftel_bollovirt<>0)')
+        wx.BeginBusyCursor()
+        try:
+            docs.SetDebug()
+            docs.Retrieve()
+        finally:
+            wx.EndBusyCursor()
+        err = None
+        for doc in docs:
+            if not doc.modpag.ftel_tippag or not doc.modpag.ftel_modpag:
+                err = "Mod.pagamento non configurata su %s n. %s del %s" % (doc.config.descriz,
+                                                                            doc.numdoc,
+                                                                            doc.dita(doc.datdoc))
+            if not err:
+                for mov in doc.mov:
+                    if mov.iva.id and mov.samefloat(mov.iva.perciva, 0) and not mov.iva.ftel_natura:
+                        err = "Aliquota IVA %s non configurata" % mov.iva.codice
+        self.gridocs.ChangeData(docs.GetRecordset())
+        cn('butprt').Enable(not docs.IsEmpty())
+    
+    def UpdateNumProgr(self):
+        pass
+
+
+class ElencoFattureElettronicheFrame(FatturaElettronicaFrame):
+    
+    Panel = ElencoFattureElettronichePanel

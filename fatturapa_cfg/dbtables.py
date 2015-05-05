@@ -33,7 +33,7 @@ class ProgrMagazz_FatturaElettronica(ProgrMagazz):
 class FatturaElettronica_Causali(adb.DbTable):
     
     def __init__(self):
-        adb.DbTable.__init__(self, 'cfgmagdoc', 'tipdoc', fields='id,codice,descriz,ftel_tipdoc,ftel_layout')
+        adb.DbTable.__init__(self, 'cfgmagdoc', 'tipdoc', fields='id,codice,descriz,ftel_tipdoc,ftel_layout,ftel_flgddt')
         self.AddOrder('tipdoc.codice')
         self.Reset()
 

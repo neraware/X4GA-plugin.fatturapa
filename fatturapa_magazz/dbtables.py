@@ -6,9 +6,12 @@
 # ------------------------------------------------------------------------------
 
 import magazz.dbtables as dbm
+import anag.dbtables as dba
 import fatturapa_cfg.dbtables as dbcfg
 
 import Env
+import MySQLdb
+
 
 from xml.dom.minidom import Document
 import re
@@ -19,6 +22,12 @@ def opj(*x):
 
 import report as rpt
 
+#===============================================================================
+# import datetime
+# import re
+# import awc.controls.windows as aw
+# import wx
+#===============================================================================
 
 class FatturaElettronicaException(Exception):
     pass
@@ -42,7 +51,7 @@ def normalize(x, upper=False):
 
 
 def fmt_qt(x):
-    mask = '%%.%df' % Env.Azienda.BaseTab.MAGQTA_DECIMALS
+    mask = '%%.%df' % max(2,Env.Azienda.BaseTab.MAGQTA_DECIMALS)
     return mask % x
 
 def fmt_pr(x):
@@ -67,11 +76,29 @@ class ClientiMovimentati(dbm.adb.DbMem):
 
 class FatturaElettronica(dbm.DocMag):
     
+    stampaDescriz = None
+    
     def __init__(self, *args, **kwargs):
         dbm.DocMag.__init__(self, *args, **kwargs)
         self.AddBaseFilter('config.ftel_tipdoc IS NOT NULL AND config.ftel_tipdoc<>""')
         self.AddBaseFilter('pdc.ftel_codice IS NOT NULL AND pdc.ftel_codice<>""')
         self.Reset()
+    
+        self.dbcfg = dbm.adb.DbTable('cfgsetup', 'setup')        
+        self.dbcfg.Retrieve('setup.chiave=%s', 'azienda_ftel_flagdescriz')
+        if self.dbcfg.OneRow():
+            self.stampaDescriz=(int(self.dbcfg.flag)==1)
+
+        self.getDocDdt()
+        self.lError=[]
+        
+    def getDocDdt(self):
+        self.docDdt=[]
+        docCfg=dba.TipiDocumento()
+        docCfg.Retrieve()
+        for r in docCfg:
+            if r.ftel_flgddt:
+                self.docDdt.append([r.id, r.descriz])
     
     @classmethod
     def ftel_get_name(cls, numprogr):
@@ -223,7 +250,7 @@ class FatturaElettronica(dbm.DocMag):
         # 1.2.1.1 <IdFiscaleIVA>
         cedente_datianag_datifisc = xmldoc.appendElement(cedente_datianag, 'IdFiscaleIVA')
         xmldoc.appendItems(cedente_datianag_datifisc, (('IdPaese',  Env.Azienda.stato or "IT"),
-                                                       ('IdCodice', Env.Azienda.codfisc or Env.Azienda.piva)))
+                                                       ('IdCodice', Env.Azienda.piva or Env.Azienda.codfisc)))
         
         # 1.2.1.3 <Anagrafica>
         cedente_datianag_anagraf = xmldoc.appendElement(cedente_datianag, 'Anagrafica')
@@ -341,8 +368,17 @@ class FatturaElettronica(dbm.DocMag):
 #                                 ('Causale',                self.config.descriz),  #indicato in v.1.1, ma da errore
                                 ('Divisa',                 'EUR'),
                                 ('Data',                   data(self.datdoc)),
-                                ('Numero',                 str(self.numdoc).zfill(5)),
-                                ('ImportoTotaleDocumento', fmt_ii(self.totimporto)),))
+                                ('Numero',                 str(self.numdoc).zfill(5)),))
+            
+            if self.ftel_bollovirt:
+                # 2.1.1.6 <DatiBollo>
+                body_gen_doc_bol = xmldoc.appendElement(body_gen_doc, 'DatiBollo')
+                xmldoc.appendItems(body_gen_doc_bol, 
+                                   (('BolloVirtuale', "SI"),
+                                    ('ImportoBollo',  fmt_ii(self.ftel_bollovirt)),))
+            
+            xmldoc.appendItems(body_gen_doc,
+                               (('ImportoTotaleDocumento', fmt_ii(self.totimporto)),))
             
             # 2.1.2 <DatiOrdineAcquisto>
             v = []
@@ -363,22 +399,35 @@ class FatturaElettronica(dbm.DocMag):
             ddt.ClearOrders()
             ddt.AddOrder('doc.datdoc')
             ddt.AddOrder('doc.numdoc')
-            ddt.Retrieve("doc.id_docacq=%s" % self.id)
+            filter=''
+            for id, des in self.docDdt:
+                filter='%s, %s' % (id, filter)
+            filter=filter[:-2]
+            
+            if len(filter)>0:
+                ddt.Retrieve("doc.id_docacq=%s and doc.id_tipdoc in (%s)" % (self.id, filter))
+            else:
+                ddt.Retrieve("doc.id_docacq=%s" % self.id)
             if ddt.RowsCount() > 0:
                 for _ in ddt:
                     body_gen_ddt = xmldoc.appendElement(body_gen, 'DatiDDT')
                     xmldoc.appendItems(body_gen_ddt, (('NumeroDDT', str(ddt.numdoc)),
                                                       ('DataDDT',   data(ddt.datdoc)),))
-            
+                    for i1 in self.getRowReferenceById(ddt.id):
+                        xmldoc.appendItems(body_gen_ddt, (('RiferimentoNumeroLinea', str(i1)),))
+                    #===========================================================
+                    # for i1 in self.getRowReference(ddt.numdoc, ddt.datdoc):
+                    #     xmldoc.appendItems(body_gen_ddt, (('RiferimentoNumeroLinea', str(i1)),))
+                    #===========================================================
             # 2.2 <DatiBeniServizi>
             body_det = xmldoc.appendElement(body, 'DatiBeniServizi')
-            
             # 2.2.1 <DettaglioLinee>
-            for mov in self.mov:
-                
-                if not mov.importo:
+            
+            lMov=self.mov.GetRecordset()
+            
+            for i, mov in enumerate(self.mov):
+                if not mov.importo: #and not self.stampaDescriz:
                     continue
-                
                 #body dettaglio linea
                 body_det_row = xmldoc.appendElement(body_det, 'DettaglioLinee')
                 imp_netto_sc = mov.importo
@@ -391,43 +440,64 @@ class FatturaElettronica(dbm.DocMag):
                 dati = []
                 dati.append(('NumeroLinea', str(mov.numriga)))
                 dati.append(('Descrizione', mov.descriz))
-#                 if mov.qta:
-#                     dati.append(('Quantita', fmt_qt(mov.qta)))
-#                 if mov.um:
-#                     dati.append(('UnitaMisura', mov.um))
-                if mov.prezzo:
-                    dati.append(('PrezzoUnitario', fmt_pr(mov.prezzo)))
+                
+                if not mov.importo:
+                    dati.append(('PrezzoUnitario', '0.00'))
+                    dati.append(('PrezzoTotale', '0.00'))
+                    dati.append(('AliquotaIVA', '0.00'))
+                    dati.append(('Natura', 'N3'))
                 else:
-                    dati.append(('PrezzoUnitario', fmt_pr(mov.importo)))
-                xmldoc.appendItems(body_det_row, dati)
-                dati = []
-                if imp_sconto:
-                    #body dettaglio sconto
-                    sdati = []
-                    sdati.append(('Tipo', 'SC'))
-                    sdati.append(('Percentuale', fmt_ii(imp_sconto/imp_lordo_sc*100)))
-                    sdati.append(('Importo', fmt_sc(imp_sconto)))
-                    body_det_row_sconto = xmldoc.appendElement(body_det_row, 'ScontoMaggiorazione')
-                    xmldoc.appendItems(body_det_row_sconto, sdati)
-                if imp_netto_sc:
-                    dati.append(('PrezzoTotale', fmt_ii(imp_netto_sc)))
-                if mov.iva.id:
-                    dati.append(('AliquotaIVA', fmt_sc(mov.iva.perciva)))
+                    #========================================================                
+                    # dati per quantita'
+                    if mov.qta:
+                        dati.append(('Quantita', fmt_qt(mov.qta)))
+                    if mov.um:
+                        dati.append(('UnitaMisura', mov.um))
+                    if mov.prezzo:
+                        dati.append(('PrezzoUnitario', fmt_pr(mov.prezzo)))
+                    else:
+                        dati.append(('PrezzoUnitario', fmt_pr(mov.importo)))
+                    xmldoc.appendItems(body_det_row, dati)
+                    dati = []
+                    if imp_sconto:
+                        #body dettaglio sconto
+                        sdati = []
+                        sdati.append(('Tipo', 'SC'))
+                        sdati.append(('Percentuale', fmt_ii(imp_sconto/imp_lordo_sc*100)))
+                        sdati.append(('Importo', fmt_sc(imp_sconto)))
+                        body_det_row_sconto = xmldoc.appendElement(body_det_row, 'ScontoMaggiorazione')
+                        xmldoc.appendItems(body_det_row_sconto, sdati)
+                    if imp_netto_sc:
+                        dati.append(('PrezzoTotale', fmt_ii(imp_netto_sc)))
+                    if mov.iva.id:
+                        dati.append(('AliquotaIVA', fmt_sc(mov.iva.perciva)))
+                    if mov.samefloat(mov.iva.perciva, 0):
+                        dati.append(('Natura', mov.iva.ftel_natura))
+                    if self.ftel_rifamm:
+                        dati.append(('RiferimentoAmministrazione', self.ftel_rifamm))
+                        
                 if dati:
                     xmldoc.appendItems(body_det_row, dati)
+
+                if self.stampaDescriz:
+                    lAddDes=self.GetRowDescriz(lMov[(i+1):])
+                    for e in lAddDes:
+                        newEle=xmldoc.appendElement(body_det_row, 'AltriDatiGestionali')
+                        xmldoc.appendItems(newEle, (('TipoDato', 'D'),
+                                                    ('RiferimentoTesto',  e[:60]), ))
+                    
+                #========================================================                
             
             # 2.2.2 <DatiRiepilogo>
-            body_det_rie = xmldoc.appendElement(body_det, 'DatiRiepilogo')
             iva = dbm.adb.DbTable('aliqiva')
             for ivaid, ivacod, ivades, imponib, imposta, importo, imposcr, isomagg, perciva, percind, tipoalq in self._info.totiva:
+                body_det_rie = xmldoc.appendElement(body_det, 'DatiRiepilogo')
                 dativa = []
                 dativa.append(('AliquotaIVA',       fmt_sc(perciva)))
                 dativa.append(('ImponibileImporto', fmt_ii(imponib)))
                 dativa.append(('Imposta',           fmt_ii(imposta)))
                 if iva.id != ivaid:
                     iva.Get(ivaid)
-                if iva.samefloat(iva.perciva, 0):
-                    dativa.append(('Natura', iva.ftel_natura))
                 if iva.tipo == "S":
                     #split payment
                     esig = "S"
@@ -507,6 +577,95 @@ class FatturaElettronica(dbm.DocMag):
 #         open(os.path.join(path, 'fatturapa_v1.0.xsl'), 'w').write(xsl.xsl)
         import fatturapa_magazz.fatturapa_v11_xsl as xsl
         open(os.path.join(path, 'fatturapa_v1.1.xsl'), 'w').write(xsl.xsl)
+
+    def getRowReferenceById(self, id_doc):
+        lRif=[]
+        con = Env.Azienda.DB.connection
+        cur = con.cursor()
+        rs=()
+        try:
+            cur.execute("SELECT id FROM %s where id_doc=%s" % (Env.Azienda.BaseTab.TABNAME_MOVMAG_B, id_doc))
+            rs = cur.fetchall()
+        except MySQLdb.Error, e:
+            print "Errore %d - %s" % (e.args[0], e.args[1])        
+        lIdBody=[i[0] for i in rs]
+        for mov in self.mov:
+            if mov.importo:
+                if mov.id_moveva in lIdBody:
+                    if mov.id_moveva:
+                        lRif.append(mov.numriga)
+        return lRif
+    
+    
+        
+        
+#===============================================================================
+#         
+#     def getRowReference(self, ndoc, datdoc):
+#         def isGenericRiferimento(mov):
+#             return mov.config.tipologia=='D' and mov.descriz[:6].upper()=='Rif.to'.upper()
+#         
+#         def isDdtRiferimento(mov):
+#             lFound=False
+#             for id, des in self.docDdt:
+#                 rif=('Rif.to '+des).upper().strip()
+#                 lFound=mov.config.tipologia=='D' and mov.descriz[:len(rif)].upper()==rif
+#                 if lFound:
+#                     break
+#             return lFound
+#         
+#         def getRiferimentoData(descriz):
+#             ok=True
+#             nDdt, dDdt= (None, None)
+#             w=re.findall(r'\b\d+\b', descriz)
+#             try:
+#                 nDdt, dDdt =(w[0], datetime.date(year=int(w[3]), month=int(w[2]), day=int(w[1]))) 
+#             except:
+#                 ok=False
+#                 nDdt, dDdt= (None, None)
+#             return (ok, nDdt, dDdt)
+#         
+#         lStart=False
+#         lRif=[]
+# 
+#         for mov in self.mov:
+#             if isGenericRiferimento(mov):
+#                 if isDdtRiferimento(mov):
+#                     # se si incontra il riferimento ad un ddt
+#                     ok, nDdt, dDdt= getRiferimentoData(mov.descriz)
+#                     if not ok:
+#                         if not  'Controllare il riferimento %s' % mov.descriz in self.lError:
+#                             self.lError.append('Controllare il riferimento %s' % mov.descriz)
+#                     elif long(nDdt)==ndoc and dDdt==datdoc:
+#                         # se il riferimento si riferisce al ddt cercato viene iniziato l'acculo dei riferiemnti
+#                         lStart=True
+#                     else:
+#                         if lStart:
+#                             break
+#                 else:
+#                     if lStart:
+#                         # se l'accumulo dei riferimenti è già iniziata e viene incontrato un riferiemnto
+#                         # generico l'accumulo dei riferimenti viene terminato
+#                         break
+#             if lStart:
+#                 if not mov.importo:
+#                     continue
+#                 lRif.append(mov.numriga)
+#         return lRif
+#===============================================================================
+    def GetRowDescriz(self, lMov):
+        lDescriz=[]
+        for e in lMov:
+            if not(e[10]==0 or e[10]==None):
+                break
+            if e[5][:7]=="Rif.to ":
+                continue
+            lDescriz.append(e[5])
+        return lDescriz
+            
+                            
+    
+
 
 
 class FTEL_Document(Document):

@@ -56,11 +56,15 @@ def FatturaElettronicaFunc( parent, call_fit = True, set_sizer = True ):
     DocumentiDaTrasmettereFunc(item9, False)
     item5.AddPage( item9, "Causali da trasmettere" )
 
+    item10 = wx.Panel( item5, -1 )
+    OpzioniFunc(item10, False)
+    item5.AddPage( item10, "Opzioni" )
+
     item0.Add( item4, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-    item10 = wx.Button( parent, ID_BUTUPD, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item10.SetName( "butupd" )
-    item0.Add( item10, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item11 = wx.Button( parent, ID_BUTUPD, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item11.SetName( "butupd" )
+    item0.Add( item11, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
 
@@ -99,7 +103,8 @@ def DocumentiDaTrasmettereFunc( parent, call_fit = True, set_sizer = True ):
 
 ID_RADIOBOX = 10005
 ID_TEXTCTRL = 10006
-ID_BUTSAVE = 10007
+ID_CHECKBOX = 10007
+ID_BUTSAVE = 10008
 
 def TipoDocumentoFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -127,9 +132,25 @@ def TipoDocumentoFunc( parent, call_fit = True, set_sizer = True ):
 
     item0.Add( item2, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
-    item7 = wx.Button( parent, ID_BUTSAVE, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item7.SetName( "butsave" )
-    item0.Add( item7, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item8 = wx.StaticBox( parent, -1, "Documento DDT" )
+    item7 = wx.StaticBoxSizer( item8, wx.VERTICAL )
+    
+    item9 = wx.FlexGridSizer( 0, 2, 0, 0 )
+    
+    item10 = wx.StaticText( parent, ID_TEXT, "Doc.Trasporto", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item9.Add( item10, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item11 = wx.CheckBox( parent, ID_CHECKBOX, "", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item11.SetName( "isddt" )
+    item9.Add( item11, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item7.Add( item9, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+    item0.Add( item7, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+    item12 = wx.Button( parent, ID_BUTSAVE, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item12.SetName( "butsave" )
+    item0.Add( item12, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
 
@@ -140,7 +161,7 @@ def TipoDocumentoFunc( parent, call_fit = True, set_sizer = True ):
     
     return item0
 
-ID_PANGRIDCLI = 10008
+ID_PANGRIDCLI = 10009
 
 def ClientiFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -164,7 +185,7 @@ def ClientiFunc( parent, call_fit = True, set_sizer = True ):
     
     return item0
 
-ID_LINE = 10009
+ID_LINE = 10010
 
 def DatiClienteFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -215,7 +236,7 @@ def DatiClienteFunc( parent, call_fit = True, set_sizer = True ):
     
     return item0
 
-ID_PANGRIDMPA = 10010
+ID_PANGRIDMPA = 10011
 
 def ModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -239,8 +260,8 @@ def ModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     
     return item0
 
-ID_TIPORATE = 10011
-ID_MODPAG = 10012
+ID_TIPORATE = 10012
+ID_MODPAG = 10013
 
 def DatiModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -268,7 +289,7 @@ def DatiModPagamentoFunc( parent, call_fit = True, set_sizer = True ):
     
     return item0
 
-ID_PANGRIDIVA = 10013
+ID_PANGRIDIVA = 10014
 
 def AliqIvaFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
@@ -306,6 +327,26 @@ def DatiAliqIvaFunc( parent, call_fit = True, set_sizer = True ):
     item0.Add( item2, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
+
+    if set_sizer == True:
+        parent.SetSizer( item0 )
+        if call_fit == True:
+            item0.SetSizeHints( parent )
+    
+    return item0
+
+
+def OpzioniFunc( parent, call_fit = True, set_sizer = True ):
+    item0 = wx.FlexGridSizer( 0, 2, 0, 0 )
+    
+    item1 = wx.StaticText( parent, ID_TEXT, "Considera righe descrittive", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item0.Add( item1, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item2 = wx.CheckBox( parent, ID_CHECKBOX, "", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item2.SetName( "flagdescriz" )
+    item0.Add( item2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+    item0.AddGrowableCol( 1 )
 
     if set_sizer == True:
         parent.SetSizer( item0 )

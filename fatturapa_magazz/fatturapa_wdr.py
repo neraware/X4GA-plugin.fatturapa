@@ -209,6 +209,118 @@ def EmissioneFatturaElettronicaFunc( parent, call_fit = True, set_sizer = True )
     
     return item0
 
+ID_DATRASM = 10019
+ID_SOLOTRASM = 10020
+ID_BOLLOVIRT = 10021
+
+def ElencoDocumentiFunc( parent, call_fit = True, set_sizer = True ):
+    item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
+    
+    item1 = wx.FlexGridSizer( 1, 0, 0, 0 )
+    
+    item2 = wx.StaticText( parent, ID_TEXT, "Ricerca documenti dal:", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item1.Add( item2, 0, wx.ALIGN_CENTER|wx.LEFT|wx.TOP|wx.BOTTOM, 5 )
+
+    item3 = DateCtrl( parent, ID_DATA1, "", wx.DefaultPosition, [80,-1], 0 )
+    item3.SetName( "data1" )
+    item1.Add( item3, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item4 = wx.StaticText( parent, ID_TEXT, "al:", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item1.Add( item4, 0, wx.ALIGN_CENTER|wx.LEFT|wx.TOP|wx.BOTTOM, 5 )
+
+    item5 = DateCtrl( parent, ID_DATA2, "", wx.DefaultPosition, [80,-1], 0 )
+    item5.SetName( "data2" )
+    item1.Add( item5, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item6 = wx.CheckBox( parent, ID_DATRASM, "Da trasmettere", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item6.SetValue( True )
+    item6.SetName( "datrasm" )
+    item1.Add( item6, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item7 = wx.CheckBox( parent, ID_SOLOTRASM, "Solo trasmessi", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item7.SetName( "solotrasm" )
+    item1.Add( item7, 0, wx.ALIGN_CENTER|wx.LEFT|wx.TOP|wx.BOTTOM, 5 )
+
+    item8 = wx.CheckBox( parent, ID_BOLLOVIRT, "Solo con Bollo virtuale", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item8.SetName( "bollovirt" )
+    item1.Add( item8, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item9 = wx.Button( parent, ID_BUTSRC, "Cerca", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item9.SetDefault()
+    item9.SetName( "butsrc" )
+    item1.Add( item9, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+    item0.Add( item1, 0, 0, 5 )
+
+    item10 = wx.StaticText( parent, ID_TEXT, "Documenti trovati:", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item10.SetForegroundColour( wx.BLUE )
+    item0.Add( item10, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT, 5 )
+
+    item11 = wx.Panel( parent, ID_PANGRIDOCS, wx.DefaultPosition, [1000,250], wx.SUNKEN_BORDER )
+    item11.SetName( "pangridocs" )
+    item0.Add( item11, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item12 = wx.FlexGridSizer( 0, 2, 0, 0 )
+    
+    item13 = wx.FlexGridSizer( 1, 0, 0, 0 )
+    
+    item14 = wx.Panel( parent, ID_LEGEND_GIA_TRASMESSO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item14.SetName( "LEGEND_GIA_TRASMESSO" )
+    item13.Add( item14, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item15 = wx.StaticText( parent, ID_TEXT, "Già trasmesso", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item13.Add( item15, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item16 = wx.Panel( parent, ID_LEGEND_DA_TRASMETTERE, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item16.SetName( "LEGEND_DA_TRASMETTERE" )
+    item13.Add( item16, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item17 = wx.StaticText( parent, ID_TEXT, "Da trasmettere", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item13.Add( item17, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item18 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CIG, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item18.SetName( "LEGEND_MANCA_CODICE_CIG" )
+    item13.Add( item18, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item19 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CIG o Num. o Data ordine acquisto", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item13.Add( item19, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item20 = wx.Panel( parent, ID_LEGEND_MANCA_CODICE_CUP, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item20.SetName( "LEGEND_MANCA_CODICE_CUP" )
+    item13.Add( item20, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item21 = wx.StaticText( parent, ID_TEXT, "Manca Cod.CUP", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item13.Add( item21, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item22 = wx.Panel( parent, ID_LEGEND_SELEZIONATO, wx.DefaultPosition, [20,20], wx.RAISED_BORDER )
+    item22.SetName( "LEGEND_SELEZIONATO" )
+    item13.Add( item22, 0, wx.ALIGN_CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item23 = wx.StaticText( parent, ID_TEXT, "Selezionato per la trasmissione", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item13.Add( item23, 0, wx.ALIGN_CENTER|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item12.Add( item13, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    item24 = wx.Button( parent, ID_BUTPRT, "Stampa", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item24.SetName( "butprt" )
+    item24.Enable(False)
+    item12.Add( item24, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item12.AddGrowableCol( 1 )
+
+    item0.Add( item12, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    item0.AddGrowableCol( 0 )
+
+    item0.AddGrowableRow( 1 )
+
+    if set_sizer == True:
+        parent.SetSizer( item0 )
+        if call_fit == True:
+            item0.SetSizeHints( parent )
+    
+    return item0
+
 # Menubar functions
 
 # Toolbar functions
