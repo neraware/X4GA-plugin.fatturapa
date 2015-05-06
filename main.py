@@ -12,3 +12,4 @@ if __name__ == '__main__':
     Env.LoadPlugin('fatturapa')
     import x4ga
     x4ga.Main()
+    
