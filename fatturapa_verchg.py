@@ -13,6 +13,12 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.1.09', dt.DateTime(2015, 5, 14), (
+         ("BUG4004",
+         """Corretta l'espansione visuale della griglia di selezione
+         documenti."""),
+        ),),
+    
     ('1.1.08', dt.DateTime(2015, 5, 5), (
          ("BET4008",
          """Aggiunta consultazione documenti emessi/da trasmettere."""),

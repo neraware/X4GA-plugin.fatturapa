@@ -312,7 +312,7 @@ def ElencoDocumentiFunc( parent, call_fit = True, set_sizer = True ):
 
     item0.AddGrowableCol( 0 )
 
-    item0.AddGrowableRow( 1 )
+    item0.AddGrowableRow( 2 )
 
     if set_sizer == True:
         parent.SetSizer( item0 )

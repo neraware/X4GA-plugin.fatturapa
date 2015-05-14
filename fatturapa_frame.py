@@ -43,12 +43,6 @@ class _EvaCli_XFrame(XFrame):
         menu = wx.Menu()
         for mid, func, voce, desc in (
             
-            (ID_FATTURAPA_ELENCO, self._FatturaPA_OnElenco, 
-             "Documenti trasmessi/da trasmettere",
-             "Visualizza l'elenco dei documenti fattura elettronica"),
-            
-            (None, None, None, None),
-            
             (ID_FATTURAPA_GENERA, self._FatturaPA_OnGenera, 
              "Genera file per la trasmissione\tShift-Ctrl-F",
              "Genera file da trasmettere a SDI"),
@@ -56,6 +50,12 @@ class _EvaCli_XFrame(XFrame):
             (ID_FATTURAPA_FOLDER, self._FatturaPA_OnFolder, 
              "Apri cartella files generati",
              "Apre la cartella dei files generati"),
+            
+            (None, None, None, None),
+            
+            (ID_FATTURAPA_ELENCO, self._FatturaPA_OnElenco, 
+             "Documenti trasmessi/da trasmettere",
+             "Visualizza l'elenco dei documenti fattura elettronica"),
             
             ):
             
