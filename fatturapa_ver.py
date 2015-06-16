@@ -7,7 +7,7 @@
 
 VERSION_MAJOR   = 1
 VERSION_MINOR   = 1
-VERSION_RELEASE = 9
+VERSION_RELEASE = 10
 VERSION_TAG     = ""
 
 min_compat_ver = '1.1.00'

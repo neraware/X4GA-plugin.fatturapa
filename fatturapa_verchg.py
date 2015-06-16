@@ -13,6 +13,11 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.1.10', dt.DateTime(2015, 6, 16), (
+         ("BUG4005",
+         """Rimosso controllo aliquote split in fatturazione differita."""),
+        ),),
+    
     ('1.1.09', dt.DateTime(2015, 5, 14), (
          ("BUG4004",
          """Corretta l'espansione visuale della griglia di selezione
