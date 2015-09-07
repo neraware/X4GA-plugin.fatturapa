@@ -13,6 +13,15 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.1.11', dt.DateTime(2015, 9, 7), (
+         ("BUG4006",
+         """Corretto il test di riferimento ai ddt sulle fatture differite."""),
+         ("BET4009",
+         """Implementata sezione per ritenuta d'acconto."""),
+         ("BET4010",
+         """Implementata sezione per cassa previdenziale."""),
+        ),),
+    
     ('1.1.10', dt.DateTime(2015, 6, 16), (
          ("BUG4005",
          """Rimosso controllo aliquote split in fatturazione differita."""),

@@ -89,16 +89,7 @@ class FatturaElettronica(dbm.DocMag):
         if self.dbcfg.OneRow():
             self.stampaDescriz=(int(self.dbcfg.flag)==1)
 
-        self.getDocDdt()
         self.lError=[]
-        
-    def getDocDdt(self):
-        self.docDdt=[]
-        docCfg=dba.TipiDocumento()
-        docCfg.Retrieve()
-        for r in docCfg:
-            if r.ftel_flgddt:
-                self.docDdt.append([r.id, r.descriz])
     
     @classmethod
     def ftel_get_name(cls, numprogr):
@@ -163,7 +154,8 @@ class FatturaElettronica(dbm.DocMag):
                     """soind socap socit sopro capsoc socuni socliq """\
                     """rfnome rfcognome rfdes rfind rfcap rfcit rfpro rfcodfis rfpiva """\
                     """trcodfis trstato """\
-                    """senome secognome sedes secodfis sepiva sestato setit seeori sesogemi""".split():
+                    """senome secognome sedes secodfis sepiva sestato setit seeori sesogemi """\
+                    """cassaprev""".split():
             cfg.Retrieve('setup.chiave=%s', 'azienda_ftel_%s' % name)
             if name == 'sesogemi':
                 if cfg.flag == "C":
@@ -370,12 +362,57 @@ class FatturaElettronica(dbm.DocMag):
                                 ('Data',                   data(self.datdoc)),
                                 ('Numero',                 str(self.numdoc).zfill(5)),))
             
+            if self.totritacc:
+                # 2.1.1.5 <DatiRitenuta>
+                cfg = self.dbcfg
+                cfg.Retrieve('chiave=%s', 'ftel_ritacc_pag')
+                ra_caupag = cfg.descriz or 'A' #versamento per professione se manca setup
+                cfg.Retrieve('chiave=%s', 'ftel_ritacc_tipo')
+                ra_tipo = "RT0%s" % (int(cfg.importo or '1')) #default persone fisiche se manca setup
+                body_gen_doc_rit = xmldoc.appendElement(body_gen_doc, 'DatiRitenuta')
+                xmldoc.appendItems(body_gen_doc_rit, 
+                                   (('TipoRitenuta',     ra_tipo),
+                                    ('ImportoRitenuta',  fmt_ii(self.totritacc)),
+                                    ('AliquotaRitenuta', fmt_sc(self.perritacc)),
+                                    ('CausalePagamento', ra_caupag),))
+            
             if self.ftel_bollovirt:
                 # 2.1.1.6 <DatiBollo>
                 body_gen_doc_bol = xmldoc.appendElement(body_gen_doc, 'DatiBollo')
                 xmldoc.appendItems(body_gen_doc_bol, 
                                    (('BolloVirtuale', "SI"),
                                     ('ImportoBollo',  fmt_ii(self.ftel_bollovirt)),))
+            
+            if 'prof_conpre' in self.mov.config.GetFieldNames():
+                # 2.1.1.7 <DatiCassaPrevidenziale> - gestito se presente plugin 'prof'ù
+                contot = conimp = 0
+                conalp = conaln = None
+                for mov in self.mov:
+                    if mov.config.prof_conpre:
+                        contot += mov.importo
+                        conalp = mov.iva.perciva
+                        conaln = mov.iva.ftel_natura
+                    elif mov.config.prof_calcon:
+                        conimp += mov.importo
+                if contot:
+                    cfg = self.dbcfg
+                    cfg.Retrieve('chiave=%s', 'prof_perconpre')
+                    if not cfg.OneRow():
+                        raise Exception, "Manca indicazione percentuale contributo su setup plugin 'prof'"
+                    cassaprev = "TC%s" % str(int(dataz["cassaprev"])).zfill(2)
+                    cp = [('TipoCassa',              cassaprev),
+                          ('AlCassa',                fmt_sc(cfg.importo)),
+                          ('ImportoContributoCassa', fmt_ii(contot)),
+                          ('ImponibileCassa',        fmt_ii(conimp)),
+                          ('AliquotaIVA',            fmt_pr(conalp)),
+                          ('Ritenuta',               "SI")]
+                    if conalp == 0:
+                        if not conaln:
+                            raise Exception, "Manca natura aliquota IVA su controib.prev."
+                        cp['Natura'] = conaln
+                    print cp
+                    body_gen_doc_prv = xmldoc.appendElement(body_gen_doc, 'DatiCassaPrevidenziale')
+                    xmldoc.appendItems(body_gen_doc_prv, cp)
             
             xmldoc.appendItems(body_gen_doc,
                                (('ImportoTotaleDocumento', fmt_ii(self.totimporto)),))
@@ -394,33 +431,25 @@ class FatturaElettronica(dbm.DocMag):
                 body_gen_acq = xmldoc.appendElement(body_gen, 'DatiOrdineAcquisto')
                 xmldoc.appendItems(body_gen_acq, v)
             
-            # 2.1.8 <DatiDDT>
-            ddt = dbm.DocMag()
-            ddt.ClearOrders()
-            ddt.AddOrder('doc.datdoc')
-            ddt.AddOrder('doc.numdoc')
-            filter=''
-            for id, des in self.docDdt:
-                filter='%s, %s' % (id, filter)
-            filter=filter[:-2]
-            
-            if len(filter)>0:
-                ddt.Retrieve("doc.id_docacq=%s and doc.id_tipdoc in (%s)" % (self.id, filter))
-            else:
+            if self.config.ftel_flgddt:
+                # 2.1.8 <DatiDDT>
+                ddt = dbm.DocMag()
+                ddt.ClearOrders()
+                ddt.AddOrder('doc.datdoc')
+                ddt.AddOrder('doc.numdoc')
                 ddt.Retrieve("doc.id_docacq=%s" % self.id)
-            if ddt.RowsCount() > 0:
-                for _ in ddt:
-                    body_gen_ddt = xmldoc.appendElement(body_gen, 'DatiDDT')
-                    xmldoc.appendItems(body_gen_ddt, (('NumeroDDT', str(ddt.numdoc)),
-                                                      ('DataDDT',   data(ddt.datdoc)),))
-                    for i1 in self.getRowReferenceById(ddt.id):
-                        xmldoc.appendItems(body_gen_ddt, (('RiferimentoNumeroLinea', str(i1)),))
-                    #===========================================================
-                    # for i1 in self.getRowReference(ddt.numdoc, ddt.datdoc):
-                    #     xmldoc.appendItems(body_gen_ddt, (('RiferimentoNumeroLinea', str(i1)),))
-                    #===========================================================
+                if not ddt.IsEmpty():
+                    for _ in ddt:
+                        body_gen_ddt = xmldoc.appendElement(body_gen, 'DatiDDT')
+                        xmldoc.appendItems(body_gen_ddt, (('NumeroDDT', str(ddt.numdoc)),
+                                                          ('DataDDT',   data(ddt.datdoc)),))
+                        for i1 in self.getRowReferenceById(ddt.id):
+                            xmldoc.appendItems(body_gen_ddt, (('RiferimentoNumeroLinea', str(i1)),))
+            
             # 2.2 <DatiBeniServizi>
+            
             body_det = xmldoc.appendElement(body, 'DatiBeniServizi')
+            
             # 2.2.1 <DettaglioLinee>
             
             lMov=self.mov.GetRecordset()

@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//fatturapa_cfg/azisetup.py=utf-8
+encoding//fatturapa_cfg/azisetup_wdr.py=UTF-8
 encoding//fatturapa_cfg/cfg_fatturapa.py=utf-8
 encoding//fatturapa_cfg/cfg_fatturapa_wdr.py=UTF-8
 encoding//fatturapa_cfg/dbtables.py=utf-8
