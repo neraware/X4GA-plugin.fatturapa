@@ -49,7 +49,7 @@ class FatturaElettronica_ModPagamento(adb.DbTable):
 class FatturaElettronica_AliqIva(adb.DbTable):
     
     def __init__(self):
-        adb.DbTable.__init__(self, 'aliqiva', fields='id,codice,descriz,ftel_natura')
+        adb.DbTable.__init__(self, 'aliqiva', fields='id,codice,descriz,ftel_natura,ftel_rifnorm')
         self.AddOrder('aliqiva.codice')
         self.Reset()
 

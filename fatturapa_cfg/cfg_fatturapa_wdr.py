@@ -317,14 +317,34 @@ def AliqIvaFunc( parent, call_fit = True, set_sizer = True ):
 def DatiAliqIvaFunc( parent, call_fit = True, set_sizer = True ):
     item0 = wx.FlexGridSizer( 0, 1, 0, 0 )
     
-    item1 = RadioBox( parent, ID_RADIOBOX, "Natura", wx.DefaultPosition, wx.DefaultSize, 
+    item1 = wx.FlexGridSizer( 1, 0, 0, 0 )
+    
+    item2 = RadioBox( parent, ID_RADIOBOX, "Natura", wx.DefaultPosition, wx.DefaultSize, 
         ["-","N1 - Escluso ex Art.15","N2 - Non soggetto","N3 - Non imponibile","N4 - Esente","N5 - Regime del margine","N6 - Inversione contabile (reverse chanrge)"] , 1, wx.RA_SPECIFY_COLS )
-    item1.SetName( "naturaliqiva" )
-    item0.Add( item1, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+    item2.SetName( "naturaliqiva" )
+    item1.Add( item2, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-    item2 = wx.Button( parent, ID_BUTSAVE, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
-    item2.SetName( "butsave" )
-    item0.Add( item2, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
+    item3 = wx.FlexGridSizer( 0, 1, 0, 0 )
+    
+    item4 = wx.StaticText( parent, ID_TEXT, "Riferimento normativo", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item4.SetForegroundColour( wx.BLUE )
+    item3.Add( item4, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5 )
+
+    item5 = TextCtrl_LC( parent, ID_TEXTCTRL, "", wx.DefaultPosition, [400,40], wx.TE_MULTILINE )
+    item5.SetName( "rifnorm" )
+    item3.Add( item5, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.BOTTOM, 5 )
+
+    item3.AddGrowableCol( 0 )
+
+    item3.AddGrowableRow( 1 )
+
+    item1.Add( item3, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    item0.Add( item1, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+    item6 = wx.Button( parent, ID_BUTSAVE, "OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+    item6.SetName( "butsave" )
+    item0.Add( item6, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5 )
 
     item0.AddGrowableCol( 0 )
 

@@ -13,6 +13,11 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.1.12', dt.DateTime(2016, 7, 25), (
+         ("BET4011",
+         """Aggiunt campo per riferimento normativo sulle aliquote iva."""),
+        ),),
+    
     ('1.1.11', dt.DateTime(2015, 9, 7), (
          ("BUG4006",
          """Corretto il test di riferimento ai ddt sulle fatture differite."""),

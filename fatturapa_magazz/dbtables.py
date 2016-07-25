@@ -534,6 +534,10 @@ class FatturaElettronica(dbm.DocMag):
                     #esigilità immediata
                     esig = "I"
                 dativa.append(('EsigibilitaIVA', esig))
+                if iva.ftel_natura:
+                    dativa.append(('Natura', iva.ftel_natura))
+                    if iva.ftel_rifnorm:
+                        dativa.append(('RiferimentoNormativo', iva.ftel_rifnorm))
                 xmldoc.appendItems(body_det_rie, dativa)
             
             # 2.4 <DatiPagamento>

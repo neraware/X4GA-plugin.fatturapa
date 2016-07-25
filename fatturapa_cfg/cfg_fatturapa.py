@@ -138,6 +138,11 @@ class AliqIvaPanel(aw.Panel):
             event.Skip()
     
     def ValidateData(self):
+        cn = self.FindWindowByName
+        rn = cn('rifnorm').GetValue()
+        if rn and rn.encode('ascii', 'replace') != rn:
+            aw.awu.MsgDialog(self, "Sono presenti caratteri non validi", style=wx.ICON_ERROR)
+            return False
         return True
 
 
@@ -162,6 +167,7 @@ class AliqIvaDialog(aw.Dialog):
         else:
             value = 0
         cn('naturaliqiva').SetSelection(value)
+        cn('rifnorm').SetValue(iva.ftel_rifnorm or '')
     
     def GetData(self):
         cn = self.FindWindowByName
@@ -170,7 +176,8 @@ class AliqIvaDialog(aw.Dialog):
             valnat = ''
         else:
             valnat = 'N%s' % str(natura).zfill(1)
-        return valnat
+        rifnorm = cn('rifnorm').GetValue() or ''
+        return valnat, rifnorm
 
 
 class DatiClientePanel(aw.Panel):
@@ -362,7 +369,7 @@ class FatturaElettronicaSetupPanel(aw.Panel):
         dlg.Destroy()
         if do:
             iva.MoveRow(event.GetRow())
-            iva.ftel_natura = dlg.GetData()
+            iva.ftel_natura, iva.ftel_rifnorm = dlg.GetData()
             self.Refresh()
         event.Skip()
     
