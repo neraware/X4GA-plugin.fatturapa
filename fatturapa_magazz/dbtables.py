@@ -91,9 +91,16 @@ class FatturaElettronica(dbm.DocMag):
 
         self.lError=[]
     
-    @classmethod
-    def ftel_get_name(cls, numprogr):
-        return 'IT%s_%s' % (Env.Azienda.codfisc, str(numprogr).zfill(5))
+#     @classmethod
+#     def ftel_get_name(cls, numprogr):
+#         return 'IT%s_%s' % (Env.Azienda.codfisc, str(numprogr).zfill(5))
+#     
+    def ftel_get_name(self, numprogr):
+        if len(self.mov) == 1:
+            nr = '01'
+        else:
+            nr = '02'
+        return 'IT%s_FPA%s' % (Env.Azienda.codfisc, nr)
     
     @classmethod
     def ftel_get_basepath(cls):
@@ -114,15 +121,21 @@ class FatturaElettronica(dbm.DocMag):
     @classmethod
     def ftel_get_pathname(cls, numprogr):
         path = cls.ftel_get_basepath()
-        path = opj(path, cls.ftel_get_name(numprogr))
+#         path = opj(path, cls.ftel_get_name(numprogr))
+        path = opj(path, 'IT%s_%s' % (Env.Azienda.codfisc, str(numprogr).zfill(5)))
         if not os.path.isdir(path):
             os.mkdir(path)
         return path
     
-    @classmethod
-    def ftel_get_filename(cls, numprogr, ext='xml'):
-        path = cls.ftel_get_pathname(numprogr)
-        name = cls.ftel_get_name(numprogr)
+#     @classmethod
+#     def ftel_get_filename(cls, numprogr, ext='xml'):
+#         path = cls.ftel_get_pathname(numprogr)
+#         name = cls.ftel_get_name(numprogr)
+#         return opj(path, '%s.%s' % (name, ext))
+#     
+    def ftel_get_filename(self, numprogr, ext='xml'):
+        path = self.ftel_get_pathname(numprogr)
+        name = self.ftel_get_name(numprogr)
         return opj(path, '%s.%s' % (name, ext))
     
     @classmethod
@@ -455,20 +468,34 @@ class FatturaElettronica(dbm.DocMag):
             lMov=self.mov.GetRecordset()
             
             for i, mov in enumerate(self.mov):
+                
                 if not mov.importo: #and not self.stampaDescriz:
                     continue
+                
+                _numriga = mov.numriga
+                _descriz = mov.descriz
+                _qta = mov.qta
+                _prezzo = mov.prezzo
+                _importo = mov.importo
+                _um = mov.um
+                
+                if self.config.scorpiva:
+                    _prezzo = round(_prezzo/(100+mov.iva.perciva)*100, 2)
+                    _importo = round(_importo/(100+mov.iva.perciva)*100, 2)
+                
                 #body dettaglio linea
                 body_det_row = xmldoc.appendElement(body_det, 'DettaglioLinee')
-                imp_netto_sc = mov.importo
-                if mov.qta and mov.prezzo:
-                    imp_lordo_sc = round(mov.qta*mov.prezzo, 2)
+                imp_netto_sc = _importo
+                if _qta and _prezzo:
+                    imp_lordo_sc = round(_qta*_prezzo, 2)
                 else:
                     imp_lordo_sc = imp_netto_sc
                 imp_sconto = round((imp_lordo_sc or 0)\
                                   -(imp_netto_sc or 0), 2)
+                
                 dati = []
-                dati.append(('NumeroLinea', str(mov.numriga)))
-                dati.append(('Descrizione', mov.descriz))
+                dati.append(('NumeroLinea', str(_numriga)))
+                dati.append(('Descrizione', _descriz))
                 
                 if not mov.importo:
                     dati.append(('PrezzoUnitario', '0.00'))
@@ -479,13 +506,13 @@ class FatturaElettronica(dbm.DocMag):
                     #========================================================                
                     # dati per quantita'
                     if mov.qta:
-                        dati.append(('Quantita', fmt_qt(mov.qta)))
+                        dati.append(('Quantita', fmt_qt(_qta)))
                     if mov.um:
-                        dati.append(('UnitaMisura', mov.um))
+                        dati.append(('UnitaMisura', _um))
                     if mov.prezzo:
-                        dati.append(('PrezzoUnitario', fmt_pr(mov.prezzo)))
+                        dati.append(('PrezzoUnitario', fmt_pr(_prezzo)))
                     else:
-                        dati.append(('PrezzoUnitario', fmt_pr(mov.importo)))
+                        dati.append(('PrezzoUnitario', fmt_pr(_importo)))
                     xmldoc.appendItems(body_det_row, dati)
                     dati = []
                     if imp_sconto:
@@ -585,7 +612,7 @@ class FatturaElettronica(dbm.DocMag):
         stream = text_re.sub('>\g<1></', stream)
         n = stream.index('>')+1
 #         stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.0.xsl"?>' + stream[n:]
-        stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.1.xsl"?>' + stream[n:]
+        stream = stream[:n] + '\n<?xml-stylesheet type="text/xsl" href="fatturapa_v1.2.xsl"?>' + stream[n:]
         
         filename = self.ftel_get_filename(numprogr)
         h = open(filename, 'w')
@@ -608,8 +635,8 @@ class FatturaElettronica(dbm.DocMag):
         path = self.ftel_get_pathname(numprogr)
 #         import fatturapa_magazz.fatturapa_v10_xsl as xsl
 #         open(os.path.join(path, 'fatturapa_v1.0.xsl'), 'w').write(xsl.xsl)
-        import fatturapa_magazz.fatturapa_v11_xsl as xsl
-        open(os.path.join(path, 'fatturapa_v1.1.xsl'), 'w').write(xsl.xsl)
+        import fatturapa_magazz.fatturapa_v12_xsl as xsl
+        open(os.path.join(path, 'fatturapa_v1.2.xsl'), 'w').write(xsl.xsl)
 
     def getRowReferenceById(self, id_doc):
         lRif=[]
@@ -703,8 +730,8 @@ class FatturaElettronica(dbm.DocMag):
 
 class FTEL_Document(Document):
     
-    version = '1.1'
-    sdicver = 'SDI11'
+    version = '1.2'
+    sdicver = 'FPA12'
     
     def createRoot(self):
         
@@ -713,7 +740,8 @@ class FTEL_Document(Document):
 #         style.setAttribute('href', "fatturapa_v1.0.xsl")
 #         
         fat = self.appendElement(self, "p:FatturaElettronica")
-        fat.setAttribute('xmlns:p', "http://www.fatturapa.gov.it/sdi/fatturapa/v%s" % self.version)
+#         fat.setAttribute('xmlns:p', "http://www.fatturapa.gov.it/sdi/fatturapa/v%s" % self.version) # 1.0, 1.1
+        fat.setAttribute('xmlns:p', "http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v%s" % self.version) # >= 1.2
         fat.setAttribute('xmlns:ds', "http://www.w3.org/2000/09/xmldsig#")
         fat.setAttribute('xmlns:xsi', "http://www.w3.org/2001/XMLSchema-instance")
         fat.setAttribute('versione', self.version)
@@ -732,5 +760,3 @@ class FTEL_Document(Document):
             item.appendChild(item_content)
             node.appendChild(item)
         return node
-
-

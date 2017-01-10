@@ -13,6 +13,11 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.12.00', dt.DateTime(2017, 1, 10), (
+         ("BET4012",
+         """Adeguamento a tracciato FPA 1.2."""),
+        ),),
+    
     ('1.1.12', dt.DateTime(2016, 7, 25), (
          ("BET4011",
          """Aggiunt campo per riferimento normativo sulle aliquote iva."""),
