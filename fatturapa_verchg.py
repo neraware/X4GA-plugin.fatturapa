@@ -13,6 +13,11 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.12.02', dt.DateTime(2017, 1, 21), (
+         ("BUG4007",
+         """Risolto problema nome file univoco."""),
+        ),),
+    
     ('1.12.00', dt.DateTime(2017, 1, 10), (
          ("BET4012",
          """Adeguamento a tracciato FPA 1.2."""),

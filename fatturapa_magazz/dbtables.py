@@ -91,16 +91,9 @@ class FatturaElettronica(dbm.DocMag):
 
         self.lError=[]
     
-#     @classmethod
-#     def ftel_get_name(cls, numprogr):
-#         return 'IT%s_%s' % (Env.Azienda.codfisc, str(numprogr).zfill(5))
-#     
-    def ftel_get_name(self, numprogr):
-        if len(self.mov) == 1:
-            nr = '01'
-        else:
-            nr = '02'
-        return 'IT%s_FPA%s' % (Env.Azienda.codfisc, nr)
+    @classmethod
+    def ftel_get_name(cls, numprogr):
+        return 'IT%s_%s' % (Env.Azienda.codfisc, str(numprogr).zfill(5))
     
     @classmethod
     def ftel_get_basepath(cls):
@@ -744,8 +737,11 @@ class FTEL_Document(Document):
         fat.setAttribute('xmlns:p', "http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v%s" % self.version) # >= 1.2
         fat.setAttribute('xmlns:ds', "http://www.w3.org/2000/09/xmldsig#")
         fat.setAttribute('xmlns:xsi', "http://www.w3.org/2001/XMLSchema-instance")
-        fat.setAttribute('versione', self.version)
-        
+        if self.version <= '1.1':
+            fat.setAttribute('versione', self.version)
+        else:
+            fat.setAttribute('xsi:schemaLocation', "http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2 fatturaordinaria_v1.2.xsd")
+            fat.setAttribute('versione', self.sdicver)
         return fat
     
     def appendElement(self, parent, tagName):
