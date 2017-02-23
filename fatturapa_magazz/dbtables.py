@@ -513,7 +513,7 @@ class FatturaElettronica(dbm.DocMag):
                         sdati = []
                         sdati.append(('Tipo', 'SC'))
                         sdati.append(('Percentuale', fmt_ii(imp_sconto/imp_lordo_sc*100)))
-                        sdati.append(('Importo', fmt_sc(imp_sconto)))
+#                         sdati.append(('Importo', fmt_sc(imp_sconto)))
                         body_det_row_sconto = xmldoc.appendElement(body_det_row, 'ScontoMaggiorazione')
                         xmldoc.appendItems(body_det_row_sconto, sdati)
                     if imp_netto_sc:

@@ -13,6 +13,11 @@ import mx.DateTime as dt
 
 plugin_history = (
 
+    ('1.12.03', dt.DateTime(2017, 2, 23), (
+         ("BUG4008",
+         """Risolto problema di indicazione dello sconto di riga, qualora presente."""),
+        ),),
+    
     ('1.12.02', dt.DateTime(2017, 1, 21), (
          ("BUG4007",
          """Risolto problema nome file univoco."""),
